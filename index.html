@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>101 &amp; Okey — Skor Takip</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <style>
+        * { font-family: 'Inter', system-ui, -apple-system, sans-serif; -webkit-tap-highlight-color: transparent; }
+        html { background: #f2f0eb; }
+        body { background: #f2f0eb; min-height: 100dvh; }
+
+        /* ---- Cards ---- */
+        .card {
+            background: #ffffff;
+            border: 1px solid #e6e3dc;
+            border-radius: 18px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+            transition: box-shadow 0.2s, border-color 0.2s;
+        }
+        .card-leader {
+            border-color: #1e3a5f;
+            box-shadow: 0 0 0 1.5px #1e3a5f, 0 4px 16px rgba(30,58,95,0.10);
+        }
+
+        /* ---- Buttons ---- */
+        .btn-primary {
+            background: #1e3a5f;
+            color: #fff;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 13px;
+            transition: background 0.15s, transform 0.1s;
+            cursor: pointer;
+            border: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            height: 40px;
+            padding: 0 14px;
+            white-space: nowrap;
+        }
+        .btn-primary:active { background: #152d4a; transform: scale(0.96); }
+
+        .btn-outline {
+            background: transparent;
+            color: #1e3a5f;
+            border: 1.5px solid #c8d8e8;
+            border-radius: 9px;
+            font-weight: 600;
+            font-size: 12px;
+            cursor: pointer;
+            transition: background 0.15s, border-color 0.15s, transform 0.1s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            height: 34px;
+            padding: 0 4px;
+        }
+        .btn-outline:active { background: #eef3f8; border-color: #1e3a5f; transform: scale(0.95); }
+
+        .btn-danger {
+            background: transparent;
+            color: #b91c1c;
+            border: 1.5px solid #fca5a5;
+            border-radius: 9px;
+            font-weight: 600;
+            font-size: 12px;
+            cursor: pointer;
+            transition: background 0.15s, border-color 0.15s, transform 0.1s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            height: 34px;
+            padding: 0 4px;
+        }
+        .btn-danger:active { background: #fef2f2; border-color: #b91c1c; transform: scale(0.95); }
+
+        /* ---- Score display ---- */
+        .score-display {
+            font-size: 2.2rem;
+            font-weight: 800;
+            letter-spacing: -0.03em;
+            line-height: 1;
+            transition: color 0.3s;
+        }
+        .c-neg { color: #b91c1c; }
+        .c-zero { color: #cbd5e1; }
+        .c-pos { color: #1e3a5f; }
+
+        /* ---- Score pulse animation ---- */
+        @keyframes scorePulse {
+            0%   { transform: scale(1); }
+            40%  { transform: scale(1.08); }
+            100% { transform: scale(1); }
+        }
+        .score-pulse { animation: scorePulse 0.28s ease; }
+
+        /* ---- Rank badges ---- */
+        .rank-badge {
+            width: 22px; height: 22px;
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 10px; font-weight: 700; flex-shrink: 0;
+        }
+        .rank-1 { background: #fbbf24; color: #78350f; }
+        .rank-2 { background: #d1d5db; color: #374151; }
+        .rank-3 { background: #c97c3a; color: #fff; }
+        .rank-4 { background: #f3f4f6; color: #adb5bd; }
+
+        /* ---- Toggle pill ---- */
+        .toggle-pill { background: #e6e3dc; border-radius: 100px; padding: 3px; display: inline-flex; }
+        .t-opt {
+            border-radius: 100px; padding: 6px 18px;
+            font-size: 13px; font-weight: 600;
+            cursor: pointer; transition: all 0.2s;
+            color: #8a8580; border: none; background: transparent;
+        }
+        .t-opt.active { background: #1e3a5f; color: #fff; box-shadow: 0 1px 6px rgba(30,58,95,0.22); }
+
+        /* ---- Input ---- */
+        .score-input {
+            border: 1.5px solid #e6e3dc;
+            border-radius: 10px;
+            padding: 0 12px;
+            height: 40px;
+            font-size: 15px;
+            font-weight: 600;
+            color: #1a1a2e;
+            background: #fafaf8;
+            width: 100%;
+            outline: none;
+            transition: border-color 0.15s, background 0.15s;
+            -moz-appearance: textfield;
+            text-align: center;
+        }
+        .score-input:focus { border-color: #1e3a5f; background: #fff; }
+        .score-input::-webkit-outer-spin-button,
+        .score-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+        .score-input.error { border-color: #b91c1c !important; }
+
+        /* ---- Name editable ---- */
+        .name-editable {
+            outline: none;
+            border-radius: 4px;
+            padding: 0 2px;
+            transition: background 0.15s;
+            min-width: 10px;
+            max-width: 100%;
+        }
+        .name-editable:focus { background: #f0f4f8; }
+
+        /* ---- History ---- */
+        .hist-row {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 9px 0;
+            border-bottom: 1px solid #f3f2ee;
+        }
+        .hist-row:last-child { border-bottom: none; }
+
+        /* ---- QR panel ---- */
+        #qr-code canvas, #qr-code img { border-radius: 10px; }
+
+        /* ---- Scrollbar ---- */
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 2px; }
+
+        /* ---- Leader crown ---- */
+        .crown { font-size: 14px; line-height: 1; }
+    </style>
+</head>
+<body>
+
+<div class="max-w-sm mx-auto px-3.5 pt-5 pb-10">
+
+    <!-- ═══ QR BANNER (top, collapsible) ═══ -->
+    <div id="qr-panel" class="card mb-4 overflow-hidden" style="display:none;">
+        <div class="p-4">
+            <p class="text-[10px] font-semibold tracking-widest text-gray-400 uppercase text-center mb-3">Oyuna Davet Linki</p>
+            <div class="flex justify-center" id="qr-code"></div>
+            <p class="text-[10px] text-center text-gray-300 mt-2.5 break-all leading-relaxed" id="qr-url-text"></p>
+        </div>
+    </div>
+
+    <!-- ═══ HEADER ═══ -->
+    <header class="mb-5">
+        <div class="flex items-start justify-between mb-4">
+            <div>
+                <p class="text-[10px] font-semibold tracking-widest text-gray-400 uppercase mb-0.5">Skor Takip</p>
+                <h1 class="text-2xl font-bold text-[#1e3a5f] tracking-tight" id="app-title">101 &amp; Okey</h1>
+            </div>
+            <!-- QR Toggle -->
+            <button onclick="toggleQR()" id="qr-btn"
+                class="flex flex-col items-center gap-0.5 px-2.5 py-2 rounded-xl transition-colors hover:bg-white"
+                title="QR Kodu Paylaş">
+                <svg width="26" height="26" viewBox="0 0 24 24" fill="none">
+                    <rect x="2.5" y="2.5" width="8" height="8" rx="1.5" stroke="#1e3a5f" stroke-width="1.6"/>
+                    <rect x="13.5" y="2.5" width="8" height="8" rx="1.5" stroke="#1e3a5f" stroke-width="1.6"/>
+                    <rect x="2.5" y="13.5" width="8" height="8" rx="1.5" stroke="#1e3a5f" stroke-width="1.6"/>
+                    <rect x="4.5" y="4.5" width="4" height="4" rx="0.5" fill="#1e3a5f"/>
+                    <rect x="15.5" y="4.5" width="4" height="4" rx="0.5" fill="#1e3a5f"/>
+                    <rect x="4.5" y="15.5" width="4" height="4" rx="0.5" fill="#1e3a5f"/>
+                    <rect x="13.5" y="13.5" width="2.5" height="2.5" rx="0.5" fill="#1e3a5f"/>
+                    <rect x="18" y="13.5" width="3.5" height="2.5" rx="0.5" fill="#1e3a5f"/>
+                    <rect x="13.5" y="18" width="3.5" height="3.5" rx="0.5" fill="#1e3a5f"/>
+                    <rect x="19" y="19" width="2.5" height="2.5" rx="0.5" fill="#1e3a5f"/>
+                </svg>
+                <span class="text-[9px] font-semibold text-gray-400">PAYLAŞ</span>
+            </button>
+        </div>
+
+        <!-- Mode switch + Reset -->
+        <div class="flex items-center justify-between">
+            <div class="toggle-pill">
+                <button class="t-opt active" id="mode-101" onclick="setMode('101')">101</button>
+                <button class="t-opt" id="mode-okey" onclick="setMode('okey')">Okey</button>
+            </div>
+            <div class="flex items-center gap-2">
+                <span id="mode-hint" class="text-[11px] text-gray-400 font-medium"></span>
+                <button onclick="resetGame()"
+                    class="text-[11px] font-semibold text-red-400 hover:text-red-600 transition-colors px-3 py-2 rounded-lg hover:bg-red-50">
+                    Sıfırla
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- ═══ PLAYER CARDS 2×2 ═══ -->
+    <div class="grid grid-cols-2 gap-2.5 mb-4" id="players-grid"></div>
+
+    <!-- ═══ HISTORY ═══ -->
+    <div class="card p-4">
+        <div class="flex items-center justify-between mb-3">
+            <h2 class="text-[11px] font-bold text-[#1e3a5f] uppercase tracking-widest">Skor Geçmişi</h2>
+            <span class="text-[11px] text-gray-400" id="hist-count">0 hamle</span>
+        </div>
+        <div id="history-list" class="max-h-64 overflow-y-auto -mx-1 px-1">
+            <p class="text-center text-xs text-gray-300 py-5">Henüz hamle yok</p>
+        </div>
+    </div>
+
+</div>
+
+<!-- ═══════════════════════════════════════════════ -->
+<script>
+// ─── STATE ────────────────────────────────────────
+let S = {
+    mode: '101',   // '101' | 'okey'
+    players: [
+        { name: 'Oyuncu 1', score: 0 },
+        { name: 'Oyuncu 2', score: 0 },
+        { name: 'Oyuncu 3', score: 0 },
+        { name: 'Oyuncu 4', score: 0 }
+    ],
+    history: [],
+    moveNo: 0
+};
+
+let qrVisible = false;
+let qrBuilt   = false;
+
+// ─── PERSISTENCE ──────────────────────────────────
+function load() {
+    try {
+        const raw = localStorage.getItem('okey101_v2');
+        if (raw) S = JSON.parse(raw);
+    } catch (_) {}
+}
+function save() {
+    localStorage.setItem('okey101_v2', JSON.stringify(S));
+}
+
+// ─── LOGIC ────────────────────────────────────────
+function ranks() {
+    const arr = S.players.map((p, i) => ({ i, s: p.score }));
+    // 101: less = better | Okey: more = better
+    arr.sort((a, b) => S.mode === '101' ? a.s - b.s : b.s - a.s);
+    const r = {};
+    arr.forEach((p, pos) => { r[p.i] = pos + 1; });
+    return r;
+}
+
+function addScore(idx, amount) {
+    S.players[idx].score += amount;
+    S.moveNo++;
+    S.history.unshift({
+        no: S.moveNo,
+        idx,
+        name: S.players[idx].name,
+        amount,
+        total: S.players[idx].score,
+        time: new Date().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })
+    });
+    save();
+    renderAll();
+    // pulse animation
+    requestAnimationFrame(() => {
+        const el = document.getElementById('sc-' + idx);
+        if (!el) return;
+        el.classList.remove('score-pulse');
+        void el.offsetWidth;
+        el.classList.add('score-pulse');
+    });
+}
+
+function addCustom(idx) {
+    const inp = document.getElementById('inp-' + idx);
+    const val = parseFloat(inp.value);
+    if (isNaN(val) || val === 0) {
+        inp.classList.add('error');
+        setTimeout(() => inp.classList.remove('error'), 700);
+        inp.focus();
+        return;
+    }
+    addScore(idx, val);
+    inp.value = '';
+}
+
+function editName(idx) {
+    const el = document.getElementById('nm-' + idx);
+    el.contentEditable = 'true';
+    el.focus();
+    const range = document.createRange();
+    range.selectNodeContents(el);
+    const sel = window.getSelection();
+    sel.removeAllRanges();
+    sel.addRange(range);
+}
+
+function saveName(idx) {
+    const el = document.getElementById('nm-' + idx);
+    el.contentEditable = 'false';
+    const v = el.textContent.trim();
+    if (!v) { el.textContent = S.players[idx].name; return; }
+    S.players[idx].name = v;
+    S.history.forEach(h => { if (h.idx === idx) h.name = v; });
+    save();
+    renderHistory();
+}
+
+function setMode(m) {
+    S.mode = m;
+    save();
+    document.getElementById('mode-101').classList.toggle('active', m === '101');
+    document.getElementById('mode-okey').classList.toggle('active', m === 'okey');
+    updateModeHint();
+    renderPlayers();
+}
+
+function updateModeHint() {
+    const el = document.getElementById('mode-hint');
+    el.textContent = S.mode === '101' ? 'Az puan kazanır' : 'Çok puan kazanır';
+}
+
+function resetGame() {
+    if (!confirm('Tüm skorları ve geçmişi sıfırlamak istiyor musunuz?')) return;
+    S.players.forEach(p => p.score = 0);
+    S.history = [];
+    S.moveNo = 0;
+    save();
+    renderAll();
+}
+
+// ─── RENDER ───────────────────────────────────────
+function renderAll() { renderPlayers(); renderHistory(); }
+
+function renderPlayers() {
+    const r = ranks();
+    const grid = document.getElementById('players-grid');
+
+    grid.innerHTML = S.players.map((p, idx) => {
+        const rank = r[idx];
+        const isLeader = rank === 1;
+        const sc = p.score < 0 ? 'c-neg' : p.score === 0 ? 'c-zero' : 'c-pos';
+        const scoreStr = p.score > 0 ? '+' + p.score : String(p.score);
+
+        return `
+<div class="card ${isLeader ? 'card-leader' : ''} p-3 flex flex-col gap-2.5">
+
+  <!-- top row: rank | name | edit icon -->
+  <div class="flex items-center gap-1.5 min-w-0">
+    <span class="rank-badge rank-${rank}">${rank}</span>
+    <span id="nm-${idx}"
+      class="name-editable flex-1 text-sm font-semibold text-gray-800 truncate cursor-pointer"
+      onblur="saveName(${idx})"
+      onkeydown="if(event.key==='Enter'){event.preventDefault();saveName(${idx})};"
+      title="İsmi düzenle"
+    >${escHtml(p.name)}</span>
+    <button onclick="editName(${idx})" class="flex-shrink-0 text-gray-300 hover:text-gray-500 transition-colors p-0.5 -mr-0.5">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
+      </svg>
+    </button>
+  </div>
+
+  <!-- score -->
+  <div class="text-center py-0.5">
+    <div id="sc-${idx}" class="score-display ${sc}">${scoreStr}</div>
+    <p class="text-[9px] uppercase tracking-widest text-gray-300 mt-0.5 font-medium">${S.mode === '101' ? 'ceza puanı' : 'puan'}</p>
+  </div>
+
+  <!-- input + ekle -->
+  <div class="flex gap-1.5">
+    <input type="number" id="inp-${idx}" class="score-input" placeholder="Puan"
+      onkeydown="if(event.key==='Enter')addCustom(${idx})">
+    <button onclick="addCustom(${idx})" class="btn-primary">Ekle</button>
+  </div>
+
+  <!-- quick buttons -->
+  <div class="grid grid-cols-3 gap-1">
+    <button onclick="addScore(${idx},101)"  class="btn-outline">+101</button>
+    <button onclick="addScore(${idx},202)"  class="btn-outline">+202</button>
+    <button onclick="addScore(${idx},-101)" class="btn-danger">−101</button>
+  </div>
+
+</div>`;
+    }).join('');
+}
+
+function renderHistory() {
+    const list = document.getElementById('history-list');
+    const cnt  = document.getElementById('hist-count');
+    cnt.textContent = S.history.length + ' hamle';
+
+    if (!S.history.length) {
+        list.innerHTML = '<p class="text-center text-xs text-gray-300 py-5">Henüz hamle yok</p>';
+        return;
+    }
+
+    // Player colors (subtle)
+    const colors = ['#1e3a5f','#2d6a4f','#6b21a8','#92400e'];
+
+    list.innerHTML = S.history.map(h => {
+        const neg = h.amount < 0;
+        const amtStr = (neg ? '' : '+') + h.amount;
+        const amtColor = neg ? '#b91c1c' : '#1e3a5f';
+        const c = colors[h.idx] || '#6b7280';
+
+        return `
+<div class="hist-row">
+  <div class="flex items-center gap-2 min-w-0">
+    <div class="w-6 h-6 rounded-full flex-shrink-0 flex items-center justify-center text-white font-bold text-[10px]"
+         style="background:${c};">${h.idx+1}</div>
+    <div class="min-w-0">
+      <p class="text-xs font-semibold text-gray-700 truncate">${escHtml(h.name)}</p>
+      <p class="text-[10px] text-gray-400">${h.time} &nbsp;·&nbsp; Toplam: <b>${h.total > 0 ? '+' : ''}${h.total}</b></p>
+    </div>
+  </div>
+  <span class="text-sm font-bold flex-shrink-0 ml-2" style="color:${amtColor}">${amtStr}</span>
+</div>`;
+    }).join('');
+}
+
+// ─── QR CODE ──────────────────────────────────────
+function toggleQR() {
+    qrVisible = !qrVisible;
+    const panel = document.getElementById('qr-panel');
+    panel.style.display = qrVisible ? 'block' : 'none';
+
+    if (qrVisible && !qrBuilt) buildQR();
+
+    // Tint the QR button when active
+    document.getElementById('qr-btn').style.background = qrVisible ? 'white' : '';
+}
+
+function buildQR() {
+    const url = window.location.href;
+    document.getElementById('qr-url-text').textContent = url;
+    const container = document.getElementById('qr-code');
+    container.innerHTML = '';
+    new QRCode(container, {
+        text: url,
+        width: 168,
+        height: 168,
+        colorDark: '#1e3a5f',
+        colorLight: '#ffffff',
+        correctLevel: QRCode.CorrectLevel.M
+    });
+    qrBuilt = true;
+}
+
+// ─── UTILS ────────────────────────────────────────
+function escHtml(s) {
+    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ─── INIT ─────────────────────────────────────────
+load();
+
+// Sync toggles with loaded state
+document.getElementById('mode-101').classList.toggle('active', S.mode === '101');
+document.getElementById('mode-okey').classList.toggle('active', S.mode === 'okey');
+updateModeHint();
+
+renderAll();
+</script>
+</body>
+</html>
