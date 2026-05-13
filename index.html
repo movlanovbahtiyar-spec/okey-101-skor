@@ -557,6 +557,41 @@ body{
 ::-webkit-scrollbar-thumb{background:rgba(255,255,255,.1);border-radius:2px}
 
 /* ══════════════════════════════════════════
+   KAT SELECTOR (Okey modu)
+══════════════════════════════════════════ */
+.kat-panel{
+  background:linear-gradient(135deg,rgba(30,41,59,.95),rgba(15,23,42,.95));
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:18px;
+  box-shadow:0 4px 20px rgba(0,0,0,.35);
+}
+.kat-btn{
+  flex:1;min-width:0;
+  border-radius:12px;
+  border:1.5px solid rgba(255,255,255,.08);
+  background:rgba(255,255,255,.04);
+  color:var(--text2);
+  font-weight:800;
+  font-size:12px;
+  cursor:pointer;
+  padding:8px 4px 6px;
+  transition:all .2s cubic-bezier(.22,1,.36,1);
+  display:flex;flex-direction:column;align-items:center;gap:1px;
+  line-height:1.2;
+  position:relative;
+  overflow:hidden;
+}
+.kat-btn:active{transform:scale(.92)}
+.kat-btn.active{
+  background:var(--kat-color,var(--gold));
+  border-color:var(--kat-color,var(--gold));
+  color:#0f172a;
+  box-shadow:0 4px 16px color-mix(in srgb,var(--kat-color,var(--gold)) 45%,transparent);
+}
+.kat-btn .kat-num{font-size:16px;font-weight:900;line-height:1}
+.kat-btn .kat-name{font-size:8px;font-weight:700;opacity:.75;letter-spacing:.04em}
+
+/* ══════════════════════════════════════════
    STAGGER DELAYS
 ══════════════════════════════════════════ */
 .delay-1{animation-delay:.05s}
@@ -636,11 +671,45 @@ body{
     </div>
     <span class="dealer-badge">🃏 DAĞITIYOR</span>
   </div>
-  <div class="flex items-center gap-2 flex-shrink-0">
+  <div class="flex items-center gap-2 flex-shrink-0" id="double-wrap">
     <span class="text-[11px] font-bold" style="color:var(--text2)">Çift</span>
     <div class="sw-track" id="double-sw" onclick="toggleDouble()">
       <div class="sw-thumb"></div>
     </div>
+  </div>
+</div>
+
+<!-- ═══ KAT PANEL (sadece Okey modunda) ═══ -->
+<div class="kat-panel mb-3 p-3 card-animate delay-2" id="kat-panel" style="display:none">
+  <div class="flex items-center justify-between mb-2.5">
+    <p class="text-[9px] font-black uppercase tracking-[.18em]" style="color:var(--gold)">Bu Elin Katı</p>
+    <span id="kat-hint" class="text-[10px] font-semibold" style="color:var(--text3)"></span>
+  </div>
+  <div class="flex gap-1.5">
+    <button class="kat-btn" style="--kat-color:#94a3b8" onclick="setOkeyKat(1,this)">
+      <span class="kat-num">1×</span>
+      <span class="kat-name">NORMAL</span>
+    </button>
+    <button class="kat-btn" style="--kat-color:#3b82f6" onclick="setOkeyKat(2,this)">
+      <span class="kat-num">2×</span>
+      <span class="kat-name">ÇİFT</span>
+    </button>
+    <button class="kat-btn" style="--kat-color:#10b981" onclick="setOkeyKat(3,this)">
+      <span class="kat-num">3×</span>
+      <span class="kat-name">OKEY İLE</span>
+    </button>
+    <button class="kat-btn" style="--kat-color:#f59e0b" onclick="setOkeyKat(4,this)">
+      <span class="kat-num">4×</span>
+      <span class="kat-name">EL ÜSTÜ</span>
+    </button>
+    <button class="kat-btn" style="--kat-color:#8b5cf6" onclick="setOkeyKat(5,this)">
+      <span class="kat-num">5×</span>
+      <span class="kat-name">KILIBIK</span>
+    </button>
+    <button class="kat-btn" style="--kat-color:#ef4444" onclick="setOkeyKat(6,this)">
+      <span class="kat-num">6×</span>
+      <span class="kat-name">OKEY+EL</span>
+    </button>
   </div>
 </div>
 
@@ -736,6 +805,7 @@ let S = {
   rounds: [],
   dealer: 0,
   double: false,
+  okeyKat: 1,
   moveNo: 0,
   history: []
 };
@@ -788,7 +858,14 @@ function toggleDouble(){
 }
 function updateSaveBtn(){
   const btn=document.getElementById('save-round-btn');
-  if(btn)btn.textContent=S.double?'✓ Eli Kaydet (×2) & Sıradaki El':'✓ Eli Kaydet & Sıradaki El';
+  if(!btn)return;
+  if(S.mode==='okey' && S.okeyKat>1){
+    btn.textContent=`✓ Eli Kaydet (×${S.okeyKat}) & Sıradaki El`;
+  } else if(S.mode==='101' && S.double){
+    btn.textContent='✓ Eli Kaydet (×2) & Sıradaki El';
+  } else {
+    btn.textContent='✓ Eli Kaydet & Sıradaki El';
+  }
 }
 
 // ══════════════════════════════════════════
@@ -909,7 +986,8 @@ function showToast(msg, type=''){
 // ADD SCORE
 // ══════════════════════════════════════════
 function addScore(idx, amount, event){
-  const real=S.double?amount*2:amount;
+  const multiplier = S.mode==='okey' ? S.okeyKat : (S.double ? 2 : 1);
+  const real = amount * multiplier;
   S.players[idx].score+=real;
   S.moveNo++;
   S.history.unshift({
@@ -953,7 +1031,8 @@ function saveRound(){
     el:S.rounds.length+1,
     scores:S.players.map(p=>p.score),
     dealer:S.dealer,
-    double:S.double
+    double:S.double,
+    kat: S.mode==='okey' ? S.okeyKat : (S.double ? 2 : 1)
   };
   S.rounds.push(entry);
   S.dealer=(S.dealer+1)%4;
@@ -994,12 +1073,41 @@ function saveName(idx){
 // ══════════════════════════════════════════
 // MODE
 // ══════════════════════════════════════════
+const KAT_RULES = ['','Normal','Çift','Okey ile','El üstü','Kılıbık','Okey + El üstü'];
+const KAT_COLORS= ['','#94a3b8','#3b82f6','#10b981','#f59e0b','#8b5cf6','#ef4444'];
+
+function setOkeyKat(n, btn){
+  S.okeyKat=n; save();
+  document.querySelectorAll('.kat-btn').forEach(b=>b.classList.remove('active'));
+  if(btn) btn.classList.add('active');
+  const hint=document.getElementById('kat-hint');
+  if(hint) hint.textContent = n===1 ? '' : KAT_RULES[n]+' — puanlar ×'+n;
+  updateSaveBtn();
+}
+
+function syncKatUI(){
+  const btns=document.querySelectorAll('.kat-btn');
+  btns.forEach((b,i)=>{
+    b.classList.toggle('active', i+1===S.okeyKat);
+  });
+  const hint=document.getElementById('kat-hint');
+  if(hint) hint.textContent = S.okeyKat===1 ? '' : KAT_RULES[S.okeyKat]+' — puanlar ×'+S.okeyKat;
+}
+
 function setMode(m){
-  S.mode=m;save();
+  S.mode=m; save();
   document.getElementById('mode-101').classList.toggle('active',m==='101');
   document.getElementById('mode-okey').classList.toggle('active',m==='okey');
-  updateHint();renderPlayers();
+  // Çift switch: sadece 101 modunda
+  const dw=document.getElementById('double-wrap');
+  if(dw) dw.style.display = m==='101' ? '' : 'none';
+  // Kat panel: sadece Okey modunda
+  const kp=document.getElementById('kat-panel');
+  if(kp) kp.style.display = m==='okey' ? 'block' : 'none';
+  if(m==='okey') syncKatUI();
+  updateHint(); updateSaveBtn(); renderPlayers();
 }
+
 function updateHint(){
   document.getElementById('mode-hint').textContent=
     S.mode==='101'?'Az puan → birinci':'Çok puan → birinci';
@@ -1011,7 +1119,7 @@ function updateHint(){
 function resetGame(){
   if(!confirm('Tüm skorları, el geçmişini ve analitik sıfırlamak istiyorsunuz?'))return;
   S.players.forEach(p=>p.score=0);
-  S.history=[];S.rounds=[];S.moveNo=0;S.dealer=0;S.double=false;
+  S.history=[];S.rounds=[];S.moveNo=0;S.dealer=0;S.double=false;S.okeyKat=1;
   const sw=document.getElementById('double-sw');
   if(sw)sw.classList.remove('on');
   save();renderAll();renderDealer();updateSaveBtn();
@@ -1104,7 +1212,9 @@ function renderHistory(){
 
   if(S.rounds.length){
     html+=S.rounds.slice().reverse().map(rd=>{
-      const dbl=rd.double?`<span style="background:rgba(245,158,11,.15);color:#fbbf24;font-size:9px;font-weight:800;padding:2px 6px;border-radius:100px;margin-left:4px">×2</span>`:'';
+      const katVal = rd.kat || (rd.double ? 2 : 1);
+      const katColor = KAT_COLORS[katVal] || '#94a3b8';
+      const dbl = katVal>1 ? `<span style="background:${katColor}22;color:${katColor};font-size:9px;font-weight:800;padding:2px 6px;border-radius:100px;margin-left:4px">×${katVal}${katVal>1&&rd.kat?(' '+KAT_RULES[katVal]):''}</span>` : '';
       const scores=rd.scores.map((s,i)=>
         `<span style="font-weight:800;color:${PLAYER_COLORS[i]}">${s>0?'+':''}${s}</span>`
       ).join('<span style="color:rgba(255,255,255,.15);margin:0 2px">/</span>');
@@ -1329,11 +1439,13 @@ function escH(s){
 // INIT
 // ══════════════════════════════════════════
 load();
+if(!S.okeyKat) S.okeyKat=1;
 setMode(S.mode);
 updateHint();
 updateSaveBtn();
 const sw=document.getElementById('double-sw');
 if(sw)sw.classList.toggle('on',S.double);
+if(S.mode==='okey') syncKatUI();
 renderAll();
 renderDealer();
 initBgTiles();
