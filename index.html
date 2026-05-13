@@ -604,38 +604,72 @@ body{
 /* ══════════════════════════════════════════
    VENUE BRANDING
 ══════════════════════════════════════════ */
-.venue-strip{
-  display:flex;align-items:center;gap:8px;
-  padding:6px 12px;
-  background:rgba(255,255,255,.04);
+/* Header venue mode */
+.venue-header{
+  background:linear-gradient(160deg,var(--navy2) 0%,var(--navy) 100%);
+  border-radius:22px;
   border:1px solid rgba(255,255,255,.07);
-  border-radius:12px;
-  margin-bottom:10px;
-  animation:fadeSlideUp .4s cubic-bezier(.22,1,.36,1) both;
+  overflow:hidden;
+  position:relative;
+  box-shadow:0 8px 32px rgba(0,0,0,.5);
 }
-.venue-logo{
-  width:28px;height:28px;border-radius:7px;
-  object-fit:contain;
+.venue-header::before{
+  content:'';
+  position:absolute;inset:-1px;border-radius:22px;
+  background:linear-gradient(135deg,var(--venue-accent,#f59e0b)44 0%,transparent 35%,transparent 65%,rgba(59,130,246,.1) 100%);
+  opacity:.35;pointer-events:none;
+}
+.venue-header-inner{
+  position:relative;z-index:1;
+  padding:16px;
+}
+.venue-header-brand{
+  display:flex;align-items:center;gap:14px;
+  padding-bottom:14px;
+  border-bottom:1px solid rgba(255,255,255,.07);
+  margin-bottom:12px;
+}
+.venue-header-logo{
+  width:56px;height:56px;border-radius:14px;
+  object-fit:contain;flex-shrink:0;
+  box-shadow:0 4px 20px rgba(0,0,0,.4);
+  border:1.5px solid rgba(255,255,255,.12);
   background:rgba(255,255,255,.06);
-  flex-shrink:0;
-  border:1px solid rgba(255,255,255,.1);
 }
-.venue-name{
-  font-size:11px;font-weight:800;
-  letter-spacing:.06em;
-  color:rgba(255,255,255,.75);
-  flex:1;min-width:0;overflow:hidden;
-  white-space:nowrap;text-overflow:ellipsis;
+.venue-header-logo-placeholder{
+  width:56px;height:56px;border-radius:14px;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  font-size:22px;
+  box-shadow:0 4px 16px rgba(0,0,0,.3);
+  border:1.5px solid rgba(255,255,255,.1);
+  background:rgba(255,255,255,.05);
+}
+.venue-header-name{
+  font-size:clamp(13px,4.5vw,19px);font-weight:900;
+  color:#fff;letter-spacing:-.02em;line-height:1.15;
+}
+.venue-header-sub{
+  font-size:9px;font-weight:700;
+  letter-spacing:.1em;text-transform:uppercase;
+  color:rgba(255,255,255,.4);
+  margin-top:3px;
+  white-space:nowrap;
+}
+.venue-powered{
+  font-size:9px;font-weight:700;
+  letter-spacing:.12em;text-transform:uppercase;
+  color:rgba(255,255,255,.25);
+  margin-top:2px;
 }
 .venue-edit-btn{
   font-size:10px;font-weight:700;
-  color:rgba(245,158,11,.6);
+  color:rgba(255,255,255,.35);
   background:none;border:none;cursor:pointer;
   padding:2px 6px;border-radius:6px;
   transition:color .2s,background .2s;
   white-space:nowrap;
 }
-.venue-edit-btn:hover{color:#f59e0b;background:rgba(245,158,11,.1)}
+.venue-edit-btn:hover{color:rgba(255,255,255,.7);background:rgba(255,255,255,.08)}
 
 /* Venue modal form inputs */
 .venue-input{
@@ -655,11 +689,20 @@ body{
 }
 .venue-input::placeholder{color:var(--text3)}
 .venue-preview-logo{
-  width:48px;height:48px;border-radius:12px;
+  width:52px;height:52px;border-radius:13px;
   object-fit:contain;
   background:rgba(255,255,255,.07);
   border:1px solid rgba(255,255,255,.12);
 }
+.color-swatch{
+  width:36px;height:36px;border-radius:10px;
+  border:2px solid rgba(255,255,255,.15);
+  cursor:pointer;flex-shrink:0;
+  transition:transform .15s,border-color .15s;
+  appearance:none;-webkit-appearance:none;
+  padding:0;
+}
+.color-swatch:hover{transform:scale(1.1);border-color:rgba(255,255,255,.4)}
 </style>
 </head>
 <body>
@@ -677,22 +720,84 @@ body{
   </div>
 </div>
 
-<!-- ═══ VENUE STRIP ═══ -->
-<div id="venue-strip" style="display:none"></div>
-
 <!-- ═══ HEADER ═══ -->
-<header class="header-card p-4 mb-3 card-animate">
+<div id="main-header" class="mb-3 card-animate"></div>
+
+<!-- header templates rendered by renderHeader() -->
+<template id="tpl-header-default">
+<header class="header-card p-4">
   <div class="flex items-start justify-between mb-3">
     <div>
       <p class="text-[9px] font-bold tracking-[.28em] uppercase mb-1.5" style="color:rgba(245,158,11,.6)">SKOR TAKİP</p>
       <h1 class="header-title font-playfair text-2xl font-bold leading-none">Yancı</h1>
     </div>
-    <div class="flex gap-2">
+    <div class="flex gap-2" id="hdr-btns-default">__BTNS__</div>
+  </div>
+  <div class="flex items-center justify-between">
+    <div class="mode-track">
+      <button class="mode-btn" id="mode-101" onclick="setMode('101')">101</button>
+      <button class="mode-btn" id="mode-okey" onclick="setMode('okey')">Okey</button>
+    </div>
+    <span id="mode-hint" class="text-[11px] font-semibold" style="color:rgba(255,255,255,.3)"></span>
+  </div>
+</header>
+</template>
+
+<template id="tpl-header-venue">
+<div class="venue-header">
+  <div class="venue-header-inner">
+    <!-- Brand row: logo + name + settings gear only -->
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+      <div id="venue-logo-wrap" style="flex-shrink:0">__LOGO__</div>
+      <div style="flex:1;min-width:0">
+        <div class="venue-header-name" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">__NAME__</div>
+        <div class="venue-header-sub">Okey &amp; 101 Skor Takip</div>
+        <div class="venue-powered">Yancı ile</div>
+      </div>
+      <button onclick="showVenueSetup()" title="Mekan Kurulumu" style="flex-shrink:0;width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);cursor:pointer">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.5)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="3"/>
+          <path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/>
+        </svg>
+      </button>
+    </div>
+    <!-- Mode + QR + Reset row -->
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:6px">
+      <div class="mode-track">
+        <button class="mode-btn" id="mode-101" onclick="setMode('101')">101</button>
+        <button class="mode-btn" id="mode-okey" onclick="setMode('okey')">Okey</button>
+      </div>
+      <span id="mode-hint" class="text-[9px] font-semibold" style="color:rgba(255,255,255,.25);flex:1;text-align:right;padding-right:2px;white-space:nowrap;overflow:hidden"></span>
+      <button onclick="toggleQR()" id="qr-btn" style="width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);cursor:pointer;flex-shrink:0">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+          <rect x="2.5" y="2.5" width="8" height="8" rx="1.5" stroke="rgba(255,255,255,.55)" stroke-width="1.8"/>
+          <rect x="13.5" y="2.5" width="8" height="8" rx="1.5" stroke="rgba(255,255,255,.55)" stroke-width="1.8"/>
+          <rect x="2.5" y="13.5" width="8" height="8" rx="1.5" stroke="rgba(255,255,255,.55)" stroke-width="1.8"/>
+          <rect x="4.5" y="4.5" width="4" height="4" rx=".5" fill="rgba(255,255,255,.55)"/>
+          <rect x="15.5" y="4.5" width="4" height="4" rx=".5" fill="rgba(255,255,255,.55)"/>
+          <rect x="4.5" y="15.5" width="4" height="4" rx=".5" fill="rgba(255,255,255,.55)"/>
+          <rect x="13.5" y="13.5" width="2.5" height="2.5" rx=".5" fill="rgba(255,255,255,.55)"/>
+          <rect x="18" y="13.5" width="3.5" height="2.5" rx=".5" fill="rgba(255,255,255,.55)"/>
+          <rect x="13.5" y="18" width="3.5" height="3.5" rx=".5" fill="rgba(255,255,255,.55)"/>
+          <rect x="19" y="19" width="2.5" height="2.5" rx=".5" fill="rgba(255,255,255,.55)"/>
+        </svg>
+      </button>
+      <button onclick="resetGame()" style="width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);cursor:pointer;flex-shrink:0">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#f87171" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+</div>
+</template>
+
+<!-- shared header action buttons snippet — injected into both templates -->
+<template id="tpl-hdr-btns">
       <button onclick="showVenueSetup()" title="Mekan Kurulumu"
         class="w-10 h-10 rounded-xl flex items-center justify-center transition-all"
         style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1)">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.6)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M12 2l1.5 3.5L17 4l-1 3.5L19.5 9l-3.5 1 .5 3.5-3-2-3 2 .5-3.5L7.5 9l3.5-1.5L10 4l3.5 1.5z" stroke-width="0" fill="none"/>
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.55)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <circle cx="12" cy="12" r="3"/>
           <path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/>
         </svg>
@@ -720,17 +825,7 @@ body{
           <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/>
         </svg>
       </button>
-    </div>
-  </div>
-
-  <div class="flex items-center justify-between">
-    <div class="mode-track">
-      <button class="mode-btn active" id="mode-101" onclick="setMode('101')">101</button>
-      <button class="mode-btn" id="mode-okey" onclick="setMode('okey')">Okey</button>
-    </div>
-    <span id="mode-hint" class="text-[11px] font-semibold" style="color:rgba(255,255,255,.3)"></span>
-  </div>
-</header>
+</template>
 
 <!-- ═══ DEALER + ÇIFT SWITCH ═══ -->
 <div class="dealer-card mb-3 px-4 py-3 flex items-center justify-between gap-3 card-animate delay-1">
@@ -868,12 +963,27 @@ body{
       <div class="flex flex-col gap-3 mb-5">
         <div>
           <label class="text-[10px] font-bold uppercase tracking-widest mb-1.5 block" style="color:var(--gold)">Mekan Adı</label>
-          <input type="text" id="venue-name-input" class="venue-input" placeholder="örn. Kafe Nargile, Club 47…" maxlength="40">
+          <input type="text" id="venue-name-input" class="venue-input" placeholder="örn. Soso Lounge, Kafe 47…" maxlength="40"
+            oninput="previewVenueLogo(document.getElementById('venue-logo-input').value)">
         </div>
         <div>
           <label class="text-[10px] font-bold uppercase tracking-widest mb-1.5 block" style="color:var(--gold)">Logo URL <span style="color:var(--text3);text-transform:none;letter-spacing:0">(opsiyonel)</span></label>
           <input type="url" id="venue-logo-input" class="venue-input" placeholder="https://…/logo.png"
             oninput="previewVenueLogo(this.value)">
+        </div>
+        <div>
+          <label class="text-[10px] font-bold uppercase tracking-widest mb-1.5 block" style="color:var(--gold)">Vurgu Rengi</label>
+          <div class="flex items-center gap-3">
+            <input type="color" id="venue-color-input" class="color-swatch" value="#f59e0b">
+            <div class="flex gap-2 flex-wrap">
+              <button onclick="setVenueColorPreset('#f59e0b')" style="width:28px;height:28px;border-radius:8px;background:#f59e0b;border:2px solid rgba(255,255,255,.2);cursor:pointer" title="Altın"></button>
+              <button onclick="setVenueColorPreset('#2d8a3e')" style="width:28px;height:28px;border-radius:8px;background:#2d8a3e;border:2px solid rgba(255,255,255,.2);cursor:pointer" title="Yeşil"></button>
+              <button onclick="setVenueColorPreset('#3b82f6')" style="width:28px;height:28px;border-radius:8px;background:#3b82f6;border:2px solid rgba(255,255,255,.2);cursor:pointer" title="Mavi"></button>
+              <button onclick="setVenueColorPreset('#8b5cf6')" style="width:28px;height:28px;border-radius:8px;background:#8b5cf6;border:2px solid rgba(255,255,255,.2);cursor:pointer" title="Mor"></button>
+              <button onclick="setVenueColorPreset('#ef4444')" style="width:28px;height:28px;border-radius:8px;background:#ef4444;border:2px solid rgba(255,255,255,.2);cursor:pointer" title="Kırmızı"></button>
+              <button onclick="setVenueColorPreset('#e2c27d')" style="width:28px;height:28px;border-radius:8px;background:#e2c27d;border:2px solid rgba(255,255,255,.2);cursor:pointer" title="Krem"></button>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -1247,7 +1357,7 @@ function resetGame(){
 // ══════════════════════════════════════════
 // RENDER ALL
 // ══════════════════════════════════════════
-function renderAll(){renderPlayers();renderHistory();renderVenue();}
+function renderAll(){renderPlayers();renderHistory();}
 
 function renderPlayers(){
   const r=ranks();
@@ -1479,33 +1589,42 @@ function buildStoryCard(){
   const leader=S.players[leaderIdx];
   const now=new Date().toLocaleString('tr-TR',{day:'2-digit',month:'long',hour:'2-digit',minute:'2-digit'});
   const sorted=[...S.players.map((p,i)=>({...p,i,rank:r[i]}))].sort((a,b)=>a.rank-b.rank);
+  const v=S.venue||{};
+  const accent=v.accentColor||'#f59e0b';
+
+  const venueBanner = v.name ? `
+<div style="background:linear-gradient(135deg,${accent}22,${accent}0a);border:1px solid ${accent}40;border-radius:18px;padding:16px 20px;margin-bottom:20px;display:flex;align-items:center;gap:14px">
+  ${v.logoUrl?`<img src="${escH(v.logoUrl)}" style="width:52px;height:52px;border-radius:13px;object-fit:contain;flex-shrink:0;border:1.5px solid ${accent}50;background:rgba(255,255,255,.06)" onerror="this.style.display='none'">`
+    :`<div style="width:52px;height:52px;border-radius:13px;background:${accent}20;border:1.5px solid ${accent}40;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0">🏠</div>`}
+  <div>
+    <p style="font-size:18px;font-weight:900;color:#fff;margin:0 0 2px;letter-spacing:-.02em">${escH(v.name)}</p>
+    <p style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.15em;color:${accent};margin:0;opacity:.8">Okey &amp; 101 Skor Takip</p>
+  </div>
+</div>` : `
+<div style="text-align:center;margin-bottom:20px">
+  <p style="font-size:11px;font-weight:700;letter-spacing:.2em;color:rgba(245,158,11,.7);text-transform:uppercase;margin-bottom:6px">OKEY / 101 SKORU</p>
+  <h2 style="font-family:'Playfair Display',serif;font-size:26px;font-weight:800;color:#fff;line-height:1.1;margin-bottom:4px">${escH(leader.name)}</h2>
+  <p style="font-size:12px;color:rgba(255,255,255,.5);font-weight:600">Şu anlık lider 👑</p>
+</div>`;
 
   document.getElementById('story-card').innerHTML=`
-<div style="text-align:center;margin-bottom:24px">
-  <p style="font-size:11px;font-weight:700;letter-spacing:.2em;color:rgba(245,158,11,.7);text-transform:uppercase;margin-bottom:6px">OKEY / 101 SKORU</p>
-  <h2 style="font-family:'Playfair Display',serif;font-size:28px;font-weight:800;color:#fff;line-height:1.1;margin-bottom:4px">${escH(leader.name)}</h2>
-  <p style="font-size:13px;color:rgba(255,255,255,.5);font-weight:600">Şu anlık lider 👑</p>
-</div>
-<div style="flex:1;display:flex;flex-direction:column;gap:10px;margin-bottom:24px">
+${venueBanner}
+<div style="display:flex;flex-direction:column;gap:9px;margin-bottom:20px">
 ${sorted.map(p=>`
-  <div style="background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);border-radius:14px;padding:12px 16px;display:flex;align-items:center;gap:12px">
-    <div style="width:32px;height:32px;border-radius:50%;background:${PLAYER_COLORS[p.i]};display:flex;align-items:center;justify-content:center;font-weight:900;font-size:13px;color:#fff;flex-shrink:0">${p.rank}</div>
+  <div style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.09);border-radius:14px;padding:11px 15px;display:flex;align-items:center;gap:12px;${p.rank===1?`box-shadow:0 0 0 1.5px ${PLAYER_COLORS[p.i]}60`:''}" >
+    <div style="width:30px;height:30px;border-radius:50%;background:${PLAYER_COLORS[p.i]};display:flex;align-items:center;justify-content:center;font-weight:900;font-size:12px;color:#fff;flex-shrink:0;box-shadow:0 2px 8px ${PLAYER_COLORS[p.i]}55">${p.rank===1?'👑':p.rank}</div>
     <div style="flex:1;min-width:0">
       <p style="font-weight:800;font-size:14px;color:#fff;margin:0 0 1px">${escH(p.name)}</p>
-      <p style="font-size:11px;color:rgba(255,255,255,.45);margin:0">${S.mode==='101'?'Ceza Puanı':'Puan'}</p>
+      <p style="font-size:10px;color:rgba(255,255,255,.4);margin:0">${S.mode==='101'?'Ceza Puanı':'Puan'}</p>
     </div>
-    <span style="font-size:22px;font-weight:900;letter-spacing:-.03em;color:${p.score<0?'#f87171':PLAYER_COLORS[p.i]}">${p.score>0?'+':''}${p.score}</span>
+    <span style="font-size:21px;font-weight:900;letter-spacing:-.03em;color:${p.score<0?'#f87171':PLAYER_COLORS[p.i]}">${p.score>0?'+':''}${p.score}</span>
   </div>`).join('')}
 </div>
-<div style="border-top:1px solid rgba(255,255,255,.1);padding-top:16px;display:flex;align-items:center;justify-content:space-between">
+<div style="border-top:1px solid rgba(255,255,255,.08);padding-top:14px;display:flex;align-items:center;justify-content:space-between">
   <div>
-    <p style="font-size:10px;color:rgba(255,255,255,.35);margin:0 0 2px;text-transform:uppercase;letter-spacing:.1em">${S.rounds.length} el oynandı</p>
-    <p style="font-size:11px;color:rgba(255,255,255,.5);margin:0">${now}</p>
+    <p style="font-size:10px;color:rgba(255,255,255,.3);margin:0 0 2px;text-transform:uppercase;letter-spacing:.1em">${S.rounds.length} el · ${now}</p>
   </div>
-  <div style="text-align:right;display:flex;align-items:center;gap:8px">
-    ${(S.venue&&S.venue.logoUrl)?`<img src="${escH(S.venue.logoUrl)}" style="width:24px;height:24px;border-radius:6px;object-fit:contain" onerror="this.style.display='none'">`:''}
-    <p style="font-family:'Playfair Display',serif;font-size:${(S.venue&&S.venue.name)?'13':'18'}px;font-weight:700;color:rgba(245,158,11,.8);margin:0">${(S.venue&&S.venue.name)?escH(S.venue.name):'Yancı'}</p>
-  </div>
+  <p style="font-family:'Playfair Display',serif;font-size:12px;font-weight:700;color:rgba(255,255,255,.25);margin:0">Yancı ile oluşturuldu</p>
 </div>`;
 }
 
@@ -1555,27 +1674,65 @@ function buildQR(){
 // ══════════════════════════════════════════
 // VENUE BRANDING
 // ══════════════════════════════════════════
-function renderVenue(){
-  const strip=document.getElementById('venue-strip');
-  if(!strip)return;
+function applyVenueTheme(){
   const v=S.venue||{};
-  if(!v.name){strip.style.display='none';return;}
-  const logo=v.logoUrl
-    ? `<img class="venue-logo" src="${escH(v.logoUrl)}" alt="${escH(v.name)}" onerror="this.style.display='none'">`
-    : `<div class="venue-logo flex items-center justify-center text-[10px] font-black" style="color:rgba(245,158,11,.7)">📍</div>`;
-  strip.style.display='block';
-  strip.innerHTML=`
-<div class="venue-strip">
-  ${logo}
-  <span class="venue-name">${escH(v.name)}</span>
-  <button class="venue-edit-btn" onclick="showVenueSetup()">Düzenle</button>
-</div>`;
+  const color=v.accentColor||'#f59e0b';
+  document.documentElement.style.setProperty('--venue-accent',color);
+  document.documentElement.style.setProperty('--gold',v.name?color:'#f59e0b');
+  document.documentElement.style.setProperty('--gold2',v.name?lightenHex(color,20):'#fbbf24');
+}
+
+function lightenHex(hex,pct){
+  const n=parseInt(hex.slice(1),16);
+  const r=Math.min(255,((n>>16)&0xff)+Math.round(2.55*pct));
+  const g=Math.min(255,((n>>8)&0xff)+Math.round(2.55*pct));
+  const b=Math.min(255,(n&0xff)+Math.round(2.55*pct));
+  return '#'+(r<<16|g<<8|b).toString(16).padStart(6,'0');
+}
+
+function renderHeader(){
+  const container=document.getElementById('main-header');
+  if(!container)return;
+  const v=S.venue||{};
+  const btnsTpl=document.getElementById('tpl-hdr-btns').innerHTML;
+
+  let html;
+  if(v.name){
+    const logoHtml=v.logoUrl
+      ? `<img class="venue-header-logo" src="${escH(v.logoUrl)}" alt="${escH(v.name)}" onerror="this.style.display='none'">`
+      : `<div class="venue-header-logo-placeholder" style="background:rgba(255,255,255,.06)">🏠</div>`;
+    html=document.getElementById('tpl-header-venue').innerHTML
+      .replace('__LOGO__',logoHtml)
+      .replace('__NAME__',escH(v.name))
+      .replace('__BTNS__',btnsTpl);
+  } else {
+    html=document.getElementById('tpl-header-default').innerHTML
+      .replace('__BTNS__',btnsTpl);
+  }
+  container.innerHTML=html;
+
+  // re-bind mode buttons & hint after re-render
+  const btn101=document.getElementById('mode-101');
+  const btnOkey=document.getElementById('mode-okey');
+  if(btn101)btn101.classList.toggle('active',S.mode==='101');
+  if(btnOkey)btnOkey.classList.toggle('active',S.mode==='okey');
+  updateHint();
+  const sw2=document.getElementById('double-sw');
+  if(sw2)sw2.classList.toggle('on',S.double);
+}
+
+// Alias kept for backward compat (renderAll calls this)
+function renderVenue(){renderHeader();}
+
+function setVenueColorPreset(hex){
+  document.getElementById('venue-color-input').value=hex;
 }
 
 function showVenueSetup(){
   const v=S.venue||{};
   document.getElementById('venue-name-input').value=v.name||'';
   document.getElementById('venue-logo-input').value=v.logoUrl||'';
+  document.getElementById('venue-color-input').value=v.accentColor||'#f59e0b';
   previewVenueLogo(v.logoUrl||'');
   document.getElementById('venue-modal').style.display='flex';
 }
@@ -1589,6 +1746,11 @@ function previewVenueLogo(url){
     img.src=url;
     nm.textContent=nameVal||'Logo önizlemesi';
     wrap.style.display='flex';
+    wrap.style.alignItems='center';
+    wrap.style.gap='12px';
+    wrap.style.marginBottom='16px';
+    wrap.style.padding='12px';
+    wrap.style.borderRadius='14px';
     wrap.style.background='rgba(255,255,255,.04)';
     wrap.style.border='1px solid rgba(255,255,255,.08)';
   } else {
@@ -1599,6 +1761,7 @@ function previewVenueLogo(url){
 function saveVenueSetup(){
   const name=document.getElementById('venue-name-input').value.trim();
   const logoUrl=document.getElementById('venue-logo-input').value.trim();
+  const accentColor=document.getElementById('venue-color-input').value||'#f59e0b';
   if(!name){
     document.getElementById('venue-name-input').style.borderColor='var(--red)';
     setTimeout(()=>document.getElementById('venue-name-input').style.borderColor='',1000);
@@ -1607,16 +1770,19 @@ function saveVenueSetup(){
   if(!S.venue)S.venue={};
   S.venue.name=name;
   S.venue.logoUrl=logoUrl;
+  S.venue.accentColor=accentColor;
   save();
-  renderVenue();
+  applyVenueTheme();
+  renderHeader();
   closeModal('venue-modal');
   showToast('🏠 Mekan ayarlandı: '+name,'success');
 }
 
 function clearVenue(){
-  S.venue={name:'',logoUrl:''};
+  S.venue={name:'',logoUrl:'',accentColor:'#f59e0b'};
   save();
-  renderVenue();
+  applyVenueTheme();
+  renderHeader();
   closeModal('venue-modal');
   showToast('Mekan bilgisi kaldırıldı');
 }
@@ -1633,16 +1799,14 @@ function escH(s){
 // ══════════════════════════════════════════
 load();
 if(!S.okeyKat) S.okeyKat=1;
-if(!S.venue) S.venue={name:'',logoUrl:''};
+if(!S.venue) S.venue={name:'',logoUrl:'',accentColor:'#f59e0b'};
+applyVenueTheme();
+renderHeader();
 setMode(S.mode);
-updateHint();
 updateSaveBtn();
-const sw=document.getElementById('double-sw');
-if(sw)sw.classList.toggle('on',S.double);
 if(S.mode==='okey') syncKatUI();
 renderAll();
 renderDealer();
-renderVenue();
 initBgTiles();
 </script>
 </body>
