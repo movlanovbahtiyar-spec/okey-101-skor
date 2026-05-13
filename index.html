@@ -826,7 +826,7 @@ function save(){localStorage.setItem('okey101_v3',JSON.stringify(S));}
 // ══════════════════════════════════════════
 function ranks(){
   const arr=S.players.map((p,i)=>({i,s:p.score}));
-  arr.sort((a,b)=>S.mode==='101'?a.s-b.s:b.s-a.s);
+  arr.sort((a,b)=>a.s-b.s); // her iki modda da az puan → birinci
   const r={};arr.forEach((p,pos)=>{r[p.i]=pos+1;});return r;
 }
 
@@ -1109,8 +1109,7 @@ function setMode(m){
 }
 
 function updateHint(){
-  document.getElementById('mode-hint').textContent=
-    S.mode==='101'?'Az puan → birinci':'Çok puan → birinci';
+  document.getElementById('mode-hint').textContent='Az puan → birinci';
 }
 
 // ══════════════════════════════════════════
@@ -1186,9 +1185,14 @@ function renderPlayers(){
 
     <!-- Quick buttons -->
     <div class="grid grid-cols-3 gap-1">
-      <button onclick="addScore(${idx},101,event)" class="btn-outline" style="color:${c};border-color:${c}30">+101</button>
-      <button onclick="addScore(${idx},202,event)" class="btn-outline" style="color:${c};border-color:${c}30">+202</button>
-      <button onclick="addScore(${idx},-101,event)" class="btn-red">&minus;101</button>
+      ${S.mode==='101'
+        ? `<button onclick="addScore(${idx},101,event)" class="btn-outline" style="color:${c};border-color:${c}30">+101</button>
+           <button onclick="addScore(${idx},202,event)" class="btn-outline" style="color:${c};border-color:${c}30">+202</button>
+           <button onclick="addScore(${idx},-101,event)" class="btn-red">&minus;101</button>`
+        : `<button onclick="addScore(${idx},10,event)" class="btn-outline" style="color:${c};border-color:${c}30">+10</button>
+           <button onclick="addScore(${idx},20,event)" class="btn-outline" style="color:${c};border-color:${c}30">+20</button>
+           <button onclick="addScore(${idx},-10,event)" class="btn-red">&minus;10</button>`
+      }
     </div>
   </div>
 </div>`;
@@ -1265,9 +1269,7 @@ function showAnalytics(){
 function computeTitles(){
   const grid=document.getElementById('titles-grid');
   const scores=S.players.map((p,i)=>({i,s:p.score,name:p.name}));
-  const mostPenalty=S.mode==='101'?
-    scores.reduce((a,b)=>a.s>b.s?a:b):
-    scores.reduce((a,b)=>a.s<b.s?a:b);
+  const mostPenalty=scores.reduce((a,b)=>a.s>b.s?a:b);
 
   let comebackKing=null;
   if(S.rounds.length>=2){
@@ -1275,7 +1277,7 @@ function computeTitles(){
     S.players.forEach((p,i)=>{
       const midScore=S.rounds[Math.floor(S.rounds.length/2)].scores[i];
       const finalScore=p.score;
-      const delta=S.mode==='101'?midScore-finalScore:finalScore-midScore;
+      const delta=midScore-finalScore;
       if(delta>maxDelta){maxDelta=delta;comebackKing={i,name:p.name,delta};}
     });
   }
