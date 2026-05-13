@@ -1,6 +1,6 @@
 {
-  "name": "101 & Okey Skor",
-  "short_name": "Okey Skor",
+  "name": "Soso Lounge — Skor Takip",
+  "short_name": "Soso Lounge",
   "description": "101 ve Okey kart oyunu skor takip uygulaması",
   "start_url": "./index.html",
   "display": "standalone",
