@@ -600,6 +600,66 @@ body{
 .delay-4{animation-delay:.2s}
 .delay-5{animation-delay:.25s}
 .delay-6{animation-delay:.3s}
+
+/* ══════════════════════════════════════════
+   VENUE BRANDING
+══════════════════════════════════════════ */
+.venue-strip{
+  display:flex;align-items:center;gap:8px;
+  padding:6px 12px;
+  background:rgba(255,255,255,.04);
+  border:1px solid rgba(255,255,255,.07);
+  border-radius:12px;
+  margin-bottom:10px;
+  animation:fadeSlideUp .4s cubic-bezier(.22,1,.36,1) both;
+}
+.venue-logo{
+  width:28px;height:28px;border-radius:7px;
+  object-fit:contain;
+  background:rgba(255,255,255,.06);
+  flex-shrink:0;
+  border:1px solid rgba(255,255,255,.1);
+}
+.venue-name{
+  font-size:11px;font-weight:800;
+  letter-spacing:.06em;
+  color:rgba(255,255,255,.75);
+  flex:1;min-width:0;overflow:hidden;
+  white-space:nowrap;text-overflow:ellipsis;
+}
+.venue-edit-btn{
+  font-size:10px;font-weight:700;
+  color:rgba(245,158,11,.6);
+  background:none;border:none;cursor:pointer;
+  padding:2px 6px;border-radius:6px;
+  transition:color .2s,background .2s;
+  white-space:nowrap;
+}
+.venue-edit-btn:hover{color:#f59e0b;background:rgba(245,158,11,.1)}
+
+/* Venue modal form inputs */
+.venue-input{
+  width:100%;
+  background:rgba(255,255,255,.05);
+  border:1.5px solid rgba(255,255,255,.1);
+  border-radius:12px;
+  padding:11px 14px;
+  font-size:14px;font-weight:500;
+  color:var(--text);
+  outline:none;
+  transition:border-color .2s,box-shadow .2s;
+}
+.venue-input:focus{
+  border-color:rgba(245,158,11,.5);
+  box-shadow:0 0 0 3px rgba(245,158,11,.1);
+}
+.venue-input::placeholder{color:var(--text3)}
+.venue-preview-logo{
+  width:48px;height:48px;border-radius:12px;
+  object-fit:contain;
+  background:rgba(255,255,255,.07);
+  border:1px solid rgba(255,255,255,.12);
+}
 </style>
 </head>
 <body>
@@ -617,6 +677,9 @@ body{
   </div>
 </div>
 
+<!-- ═══ VENUE STRIP ═══ -->
+<div id="venue-strip" style="display:none"></div>
+
 <!-- ═══ HEADER ═══ -->
 <header class="header-card p-4 mb-3 card-animate">
   <div class="flex items-start justify-between mb-3">
@@ -625,6 +688,15 @@ body{
       <h1 class="header-title font-playfair text-2xl font-bold leading-none">Yancı</h1>
     </div>
     <div class="flex gap-2">
+      <button onclick="showVenueSetup()" title="Mekan Kurulumu"
+        class="w-10 h-10 rounded-xl flex items-center justify-center transition-all"
+        style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1)">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.6)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 2l1.5 3.5L17 4l-1 3.5L19.5 9l-3.5 1 .5 3.5-3-2-3 2 .5-3.5L7.5 9l3.5-1.5L10 4l3.5 1.5z" stroke-width="0" fill="none"/>
+          <circle cx="12" cy="12" r="3"/>
+          <path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/>
+        </svg>
+      </button>
       <button onclick="toggleQR()" id="qr-btn" title="Paylaş"
         class="w-10 h-10 rounded-xl flex items-center justify-center transition-all"
         style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1)">
@@ -769,6 +841,56 @@ body{
   </div>
 </div>
 
+<!-- ═══ MEKAN KURULUM MODALİ ═══ -->
+<div id="venue-modal" class="modal-bg" style="display:none" onclick="closeModal('venue-modal')">
+  <div class="modal-sheet" onclick="event.stopPropagation()">
+    <div class="modal-handle"></div>
+    <div class="p-5 pt-4">
+      <div class="flex items-center justify-between mb-5">
+        <div>
+          <h2 class="font-playfair text-xl font-bold" style="color:var(--text)">Mekan Kurulumu</h2>
+          <p class="text-[11px] mt-0.5" style="color:var(--text3)">Markalı skor kartı için</p>
+        </div>
+        <button onclick="closeModal('venue-modal')"
+          class="w-8 h-8 rounded-full flex items-center justify-center"
+          style="background:rgba(255,255,255,.08);color:var(--text2);font-size:18px">&times;</button>
+      </div>
+
+      <!-- Logo preview -->
+      <div id="venue-logo-preview" style="display:none" class="flex items-center gap-3 mb-4 p-3 rounded-xl" style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08)">
+        <img id="venue-preview-img" class="venue-preview-logo" src="" alt="">
+        <div>
+          <p class="text-xs font-bold" style="color:var(--text2)" id="venue-preview-name"></p>
+          <p class="text-[10px]" style="color:var(--text3)">Logo önizlemesi</p>
+        </div>
+      </div>
+
+      <div class="flex flex-col gap-3 mb-5">
+        <div>
+          <label class="text-[10px] font-bold uppercase tracking-widest mb-1.5 block" style="color:var(--gold)">Mekan Adı</label>
+          <input type="text" id="venue-name-input" class="venue-input" placeholder="örn. Kafe Nargile, Club 47…" maxlength="40">
+        </div>
+        <div>
+          <label class="text-[10px] font-bold uppercase tracking-widest mb-1.5 block" style="color:var(--gold)">Logo URL <span style="color:var(--text3);text-transform:none;letter-spacing:0">(opsiyonel)</span></label>
+          <input type="url" id="venue-logo-input" class="venue-input" placeholder="https://…/logo.png"
+            oninput="previewVenueLogo(this.value)">
+        </div>
+      </div>
+
+      <div class="flex gap-2">
+        <button onclick="saveVenueSetup()"
+          class="btn-primary flex-1" style="height:46px;font-size:14px">
+          ✓ Kaydet
+        </button>
+        <button onclick="clearVenue()"
+          class="btn-navy flex-shrink-0" style="height:46px;padding:0 16px;font-size:13px;color:#f87171;border-color:rgba(239,68,68,.25)">
+          Sil
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- ═══ STORY MODALİ ═══ -->
 <div id="story-modal" class="story-modal-bg" style="display:none" onclick="closeModal('story-modal')">
   <div onclick="event.stopPropagation()" class="flex flex-col items-center gap-4">
@@ -803,7 +925,8 @@ let S = {
   double: false,
   okeyKat: 1,
   moveNo: 0,
-  history: []
+  history: [],
+  venue: {name:'', logoUrl:''}
 };
 
 let qrVisible=false, qrBuilt=false, chartInst=null;
@@ -1124,7 +1247,7 @@ function resetGame(){
 // ══════════════════════════════════════════
 // RENDER ALL
 // ══════════════════════════════════════════
-function renderAll(){renderPlayers();renderHistory();}
+function renderAll(){renderPlayers();renderHistory();renderVenue();}
 
 function renderPlayers(){
   const r=ranks();
@@ -1379,7 +1502,10 @@ ${sorted.map(p=>`
     <p style="font-size:10px;color:rgba(255,255,255,.35);margin:0 0 2px;text-transform:uppercase;letter-spacing:.1em">${S.rounds.length} el oynandı</p>
     <p style="font-size:11px;color:rgba(255,255,255,.5);margin:0">${now}</p>
   </div>
-  <p style="font-family:'Playfair Display',serif;font-size:18px;font-weight:700;color:rgba(245,158,11,.8);margin:0">101 &amp; Okey</p>
+  <div style="text-align:right;display:flex;align-items:center;gap:8px">
+    ${(S.venue&&S.venue.logoUrl)?`<img src="${escH(S.venue.logoUrl)}" style="width:24px;height:24px;border-radius:6px;object-fit:contain" onerror="this.style.display='none'">`:''}
+    <p style="font-family:'Playfair Display',serif;font-size:${(S.venue&&S.venue.name)?'13':'18'}px;font-weight:700;color:rgba(245,158,11,.8);margin:0">${(S.venue&&S.venue.name)?escH(S.venue.name):'Yancı'}</p>
+  </div>
 </div>`;
 }
 
@@ -1427,6 +1553,75 @@ function buildQR(){
 }
 
 // ══════════════════════════════════════════
+// VENUE BRANDING
+// ══════════════════════════════════════════
+function renderVenue(){
+  const strip=document.getElementById('venue-strip');
+  if(!strip)return;
+  const v=S.venue||{};
+  if(!v.name){strip.style.display='none';return;}
+  const logo=v.logoUrl
+    ? `<img class="venue-logo" src="${escH(v.logoUrl)}" alt="${escH(v.name)}" onerror="this.style.display='none'">`
+    : `<div class="venue-logo flex items-center justify-center text-[10px] font-black" style="color:rgba(245,158,11,.7)">📍</div>`;
+  strip.style.display='block';
+  strip.innerHTML=`
+<div class="venue-strip">
+  ${logo}
+  <span class="venue-name">${escH(v.name)}</span>
+  <button class="venue-edit-btn" onclick="showVenueSetup()">Düzenle</button>
+</div>`;
+}
+
+function showVenueSetup(){
+  const v=S.venue||{};
+  document.getElementById('venue-name-input').value=v.name||'';
+  document.getElementById('venue-logo-input').value=v.logoUrl||'';
+  previewVenueLogo(v.logoUrl||'');
+  document.getElementById('venue-modal').style.display='flex';
+}
+
+function previewVenueLogo(url){
+  const wrap=document.getElementById('venue-logo-preview');
+  const img=document.getElementById('venue-preview-img');
+  const nm=document.getElementById('venue-preview-name');
+  const nameVal=document.getElementById('venue-name-input').value.trim();
+  if(url){
+    img.src=url;
+    nm.textContent=nameVal||'Logo önizlemesi';
+    wrap.style.display='flex';
+    wrap.style.background='rgba(255,255,255,.04)';
+    wrap.style.border='1px solid rgba(255,255,255,.08)';
+  } else {
+    wrap.style.display='none';
+  }
+}
+
+function saveVenueSetup(){
+  const name=document.getElementById('venue-name-input').value.trim();
+  const logoUrl=document.getElementById('venue-logo-input').value.trim();
+  if(!name){
+    document.getElementById('venue-name-input').style.borderColor='var(--red)';
+    setTimeout(()=>document.getElementById('venue-name-input').style.borderColor='',1000);
+    return;
+  }
+  if(!S.venue)S.venue={};
+  S.venue.name=name;
+  S.venue.logoUrl=logoUrl;
+  save();
+  renderVenue();
+  closeModal('venue-modal');
+  showToast('🏠 Mekan ayarlandı: '+name,'success');
+}
+
+function clearVenue(){
+  S.venue={name:'',logoUrl:''};
+  save();
+  renderVenue();
+  closeModal('venue-modal');
+  showToast('Mekan bilgisi kaldırıldı');
+}
+
+// ══════════════════════════════════════════
 // UTILS
 // ══════════════════════════════════════════
 function escH(s){
@@ -1438,6 +1633,7 @@ function escH(s){
 // ══════════════════════════════════════════
 load();
 if(!S.okeyKat) S.okeyKat=1;
+if(!S.venue) S.venue={name:'',logoUrl:''};
 setMode(S.mode);
 updateHint();
 updateSaveBtn();
@@ -1446,6 +1642,7 @@ if(sw)sw.classList.toggle('on',S.double);
 if(S.mode==='okey') syncKatUI();
 renderAll();
 renderDealer();
+renderVenue();
 initBgTiles();
 </script>
 </body>
