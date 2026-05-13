@@ -3,209 +3,677 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<meta name="theme-color" content="#1e3a5f">
+<meta name="theme-color" content="#0f172a">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="101 Okey">
+<meta name="apple-mobile-web-app-title" content="Yancı">
 <link rel="manifest" href="manifest.json">
-<title>101 &amp; Okey — Skor</title>
+<title>Yancı — Skor Takip</title>
 
-<!-- CDN'ler -->
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;800&family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 
 <style>
+/* ══════════════════════════════════════════
+   BASE
+══════════════════════════════════════════ */
 *{font-family:'Inter',system-ui,sans-serif;-webkit-tap-highlight-color:transparent;box-sizing:border-box}
 .font-playfair{font-family:'Playfair Display',serif}
 
-/* Arka plan */
-body{background:#f5f0e8;min-height:100dvh}
-
-/* Renk paleti: Old Money */
 :root{
-  --cream:#f5f0e8; --cream2:#ede7d9;
-  --navy:#1e3a5f; --navy2:#152d4a;
-  --gold:#c9a84c; --gold2:#e8c76a;
-  --red:#c0392b; --green:#1a6b47;
-  --border:#ddd5c0;
+  --navy:#0f172a; --navy2:#1e293b; --navy3:#334155;
+  --gold:#f59e0b; --gold2:#fbbf24; --gold3:#fde68a;
+  --red:#ef4444; --green:#10b981;
+  --surface:#1e293b; --surface2:#334155;
+  --border:rgba(255,255,255,.08);
+  --text:#f8fafc; --text2:#94a3b8; --text3:#64748b;
+  --p0:#3b82f6; --p1:#10b981; --p2:#f59e0b; --p3:#ef4444;
 }
 
-/* Kartlar */
-.card{background:#fff;border:1px solid var(--border);border-radius:18px;box-shadow:0 2px 12px rgba(0,0,0,.07)}
-.card-navy{background:var(--navy);border-color:var(--navy2)}
+html{scroll-behavior:smooth}
 
-/* Dealer badge */
-@keyframes dealerPulse{0%,100%{box-shadow:0 0 0 0 rgba(201,168,76,.6)}50%{box-shadow:0 0 0 8px rgba(201,168,76,0)}}
-.dealer-badge{animation:dealerPulse 2s infinite;background:var(--gold);color:var(--navy);font-weight:800;font-size:9px;padding:2px 7px;border-radius:100px;letter-spacing:.08em}
+body{
+  background:var(--navy);
+  min-height:100dvh;
+  background-image:
+    radial-gradient(ellipse 60% 40% at 50% -10%, rgba(59,130,246,.18) 0%, transparent 70%),
+    radial-gradient(ellipse 40% 30% at 90% 50%, rgba(245,158,11,.08) 0%, transparent 60%),
+    radial-gradient(ellipse 50% 40% at 0% 80%, rgba(16,185,129,.07) 0%, transparent 60%);
+  background-attachment:fixed;
+}
 
-/* Score input */
-.sc-inp{border:1.5px solid var(--border);border-radius:10px;padding:0 12px;height:42px;font-size:15px;font-weight:700;color:var(--navy);background:#fdfaf5;width:100%;outline:none;text-align:center;-moz-appearance:textfield}
-.sc-inp:focus{border-color:var(--navy);background:#fff}
+/* ══════════════════════════════════════════
+   ANIMATIONS
+══════════════════════════════════════════ */
+@keyframes fadeSlideUp{
+  from{opacity:0;transform:translateY(20px)}
+  to{opacity:1;transform:translateY(0)}
+}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes scaleIn{
+  from{opacity:0;transform:scale(.88)}
+  to{opacity:1;transform:scale(1)}
+}
+@keyframes slideDown{
+  from{opacity:0;transform:translateY(-12px)}
+  to{opacity:1;transform:translateY(0)}
+}
+@keyframes modalIn{
+  from{opacity:0;transform:translateY(40px) scale(.96)}
+  to{opacity:1;transform:translateY(0) scale(1)}
+}
+@keyframes pop{
+  0%{transform:scale(1)}
+  35%{transform:scale(1.22)}
+  65%{transform:scale(.95)}
+  100%{transform:scale(1)}
+}
+@keyframes scorePop{
+  0%{transform:scale(1);filter:brightness(1)}
+  40%{transform:scale(1.18);filter:brightness(1.4)}
+  100%{transform:scale(1);filter:brightness(1)}
+}
+@keyframes shimmer{
+  0%{background-position:-200% center}
+  100%{background-position:200% center}
+}
+@keyframes dealerPulse{
+  0%,100%{box-shadow:0 0 0 0 rgba(245,158,11,.5)}
+  50%{box-shadow:0 0 0 6px rgba(245,158,11,0)}
+}
+@keyframes glowPulse{
+  0%,100%{opacity:.7}50%{opacity:1}
+}
+@keyframes floatUp{
+  0%{opacity:1;transform:translateY(0) scale(1)}
+  100%{opacity:0;transform:translateY(-60px) scale(.8)}
+}
+@keyframes rippleOut{
+  0%{transform:scale(0);opacity:.35}
+  100%{transform:scale(3.5);opacity:0}
+}
+@keyframes bounce{
+  0%,100%{transform:translateY(0)}
+  50%{transform:translateY(-5px)}
+}
+@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+@keyframes toast-in{
+  from{transform:translateY(100%) scale(.9);opacity:0}
+  to{transform:translateY(0) scale(1);opacity:1}
+}
+@keyframes toast-out{
+  from{transform:translateY(0) scale(1);opacity:1}
+  to{transform:translateY(100%) scale(.9);opacity:0}
+}
+/* Okey taşı animasyonları */
+@keyframes tileFloat{
+  0%,100%{transform:translateY(0) rotate(-3deg)}
+  50%{transform:translateY(-8px) rotate(3deg)}
+}
+@keyframes tileSpin{
+  0%{transform:rotateY(0deg) scale(1)}
+  40%{transform:rotateY(90deg) scale(.85)}
+  60%{transform:rotateY(90deg) scale(.85)}
+  100%{transform:rotateY(0deg) scale(1)}
+}
+@keyframes tileBounceIn{
+  0%{transform:scale(0) rotate(-15deg);opacity:0}
+  60%{transform:scale(1.15) rotate(5deg);opacity:1}
+  80%{transform:scale(.95) rotate(-2deg)}
+  100%{transform:scale(1) rotate(0deg);opacity:1}
+}
+@keyframes tileShake{
+  0%,100%{transform:rotate(0deg)}
+  20%{transform:rotate(-12deg)}
+  40%{transform:rotate(12deg)}
+  60%{transform:rotate(-8deg)}
+  80%{transform:rotate(8deg)}
+}
+@keyframes tileSlideLeft{
+  0%{transform:translateX(0)}
+  30%{transform:translateX(-6px) rotate(-5deg)}
+  60%{transform:translateX(4px) rotate(3deg)}
+  100%{transform:translateX(0) rotate(0deg)}
+}
+@keyframes rankChange{
+  0%{transform:scale(1)}
+  50%{transform:scale(1.4)}
+  100%{transform:scale(1)}
+}
+@keyframes headerGlow{
+  0%,100%{text-shadow:0 0 20px rgba(245,158,11,.3)}
+  50%{text-shadow:0 0 40px rgba(245,158,11,.6),0 0 80px rgba(245,158,11,.2)}
+}
+@keyframes borderFlow{
+  0%{background-position:0% 50%}
+  50%{background-position:100% 50%}
+  100%{background-position:0% 50%}
+}
+
+/* ══════════════════════════════════════════
+   CARDS
+══════════════════════════════════════════ */
+.card{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:20px;
+  box-shadow:0 4px 24px rgba(0,0,0,.4),0 1px 0 rgba(255,255,255,.04) inset;
+}
+.card-animate{
+  animation:fadeSlideUp .45s cubic-bezier(.22,1,.36,1) both;
+}
+.player-card{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:18px;
+  box-shadow:0 4px 20px rgba(0,0,0,.35);
+  transition:transform .2s ease,box-shadow .2s ease;
+  overflow:hidden;
+  position:relative;
+}
+.player-card:hover{
+  transform:translateY(-2px);
+  box-shadow:0 8px 32px rgba(0,0,0,.5);
+}
+.player-card.leader-glow{
+  box-shadow:0 0 0 1.5px var(--leader-color),0 8px 32px rgba(0,0,0,.5),0 0 24px color-mix(in srgb,var(--leader-color) 25%,transparent);
+  animation:glowPulse 2.5s ease-in-out infinite;
+}
+
+/* ══════════════════════════════════════════
+   HEADER
+══════════════════════════════════════════ */
+.header-card{
+  background:linear-gradient(145deg,#1e293b 0%,#0f172a 100%);
+  border:1px solid rgba(255,255,255,.07);
+  border-radius:22px;
+  position:relative;
+  overflow:hidden;
+  box-shadow:0 8px 32px rgba(0,0,0,.5);
+}
+.header-card::before{
+  content:'';
+  position:absolute;
+  inset:-1px;
+  border-radius:22px;
+  background:linear-gradient(135deg,rgba(245,158,11,.25) 0%,transparent 40%,transparent 60%,rgba(59,130,246,.15) 100%);
+  pointer-events:none;
+}
+.header-title{
+  animation:headerGlow 4s ease-in-out infinite;
+  background:linear-gradient(135deg,#fff 0%,#fde68a 40%,#f59e0b 70%,#fff 100%);
+  background-size:200% auto;
+  -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;
+  background-clip:text;
+  animation:shimmer 4s linear infinite, headerGlow 4s ease-in-out infinite;
+}
+
+/* ══════════════════════════════════════════
+   MODE TOGGLE
+══════════════════════════════════════════ */
+.mode-track{
+  background:rgba(255,255,255,.06);
+  border:1px solid rgba(255,255,255,.1);
+  border-radius:100px;
+  padding:3px;
+  display:inline-flex;
+}
+.mode-btn{
+  border-radius:100px;
+  padding:7px 22px;
+  font-size:13px;
+  font-weight:700;
+  cursor:pointer;
+  transition:all .25s cubic-bezier(.22,1,.36,1);
+  border:none;
+  color:var(--text2);
+  background:transparent;
+  position:relative;
+}
+.mode-btn.active{
+  background:#fff;
+  color:#0f172a;
+  box-shadow:0 2px 12px rgba(0,0,0,.35);
+}
+
+/* ══════════════════════════════════════════
+   DEALER BAR
+══════════════════════════════════════════ */
+.dealer-card{
+  background:linear-gradient(135deg,rgba(30,41,59,.9) 0%,rgba(15,23,42,.9) 100%);
+  border:1px solid rgba(245,158,11,.2);
+  border-radius:16px;
+  box-shadow:0 4px 16px rgba(0,0,0,.3);
+}
+.dealer-badge{
+  animation:dealerPulse 2s infinite;
+  background:linear-gradient(135deg,var(--gold) 0%,var(--gold2) 100%);
+  color:#0f172a;
+  font-weight:900;
+  font-size:9px;
+  padding:3px 8px;
+  border-radius:100px;
+  letter-spacing:.08em;
+  box-shadow:0 2px 8px rgba(245,158,11,.4);
+}
+
+/* ══════════════════════════════════════════
+   TOGGLE SWITCH
+══════════════════════════════════════════ */
+.sw-track{
+  width:46px;height:26px;
+  background:rgba(255,255,255,.1);
+  border:1px solid rgba(255,255,255,.15);
+  border-radius:100px;
+  position:relative;cursor:pointer;
+  transition:all .25s cubic-bezier(.22,1,.36,1);
+  flex-shrink:0;
+}
+.sw-track.on{
+  background:linear-gradient(135deg,var(--gold),var(--gold2));
+  border-color:var(--gold);
+  box-shadow:0 0 12px rgba(245,158,11,.4);
+}
+.sw-thumb{
+  width:20px;height:20px;
+  background:#fff;
+  border-radius:50%;
+  position:absolute;top:2px;left:2px;
+  transition:left .25s cubic-bezier(.22,1,.36,1);
+  box-shadow:0 1px 4px rgba(0,0,0,.3);
+}
+.sw-track.on .sw-thumb{left:24px}
+
+/* ══════════════════════════════════════════
+   SCORE INPUT
+══════════════════════════════════════════ */
+.sc-inp{
+  border:1.5px solid rgba(255,255,255,.1);
+  border-radius:11px;
+  padding:0 12px;height:44px;
+  font-size:15px;font-weight:700;
+  color:var(--text);
+  background:rgba(255,255,255,.05);
+  width:100%;outline:none;
+  text-align:center;
+  -moz-appearance:textfield;
+  transition:border-color .2s,background .2s,box-shadow .2s;
+}
+.sc-inp:focus{
+  border-color:rgba(255,255,255,.3);
+  background:rgba(255,255,255,.08);
+  box-shadow:0 0 0 3px rgba(255,255,255,.05);
+}
 .sc-inp::-webkit-outer-spin-button,.sc-inp::-webkit-inner-spin-button{-webkit-appearance:none}
-.sc-inp.err{border-color:var(--red)!important;background:#fff5f5!important}
+.sc-inp.err{border-color:var(--red)!important;background:rgba(239,68,68,.08)!important;animation:pop .3s}
 
-/* Toggle switch */
-.sw-track{width:44px;height:24px;background:#ddd5c0;border-radius:100px;position:relative;cursor:pointer;transition:background .2s;flex-shrink:0}
-.sw-track.on{background:var(--gold)}
-.sw-thumb{width:20px;height:20px;background:#fff;border-radius:50%;position:absolute;top:2px;left:2px;transition:left .2s;box-shadow:0 1px 4px rgba(0,0,0,.2)}
-.sw-track.on .sw-thumb{left:22px}
+/* ══════════════════════════════════════════
+   RANK BADGES
+══════════════════════════════════════════ */
+.rb{
+  width:24px;height:24px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:10px;font-weight:900;flex-shrink:0;
+  transition:all .3s cubic-bezier(.22,1,.36,1);
+}
+.rb-1{background:linear-gradient(135deg,#f59e0b,#fcd34d);color:#78350f;box-shadow:0 2px 10px rgba(245,158,11,.5)}
+.rb-2{background:linear-gradient(135deg,#64748b,#94a3b8);color:#fff;box-shadow:0 2px 8px rgba(100,116,139,.4)}
+.rb-3{background:linear-gradient(135deg,#92400e,#b45309);color:#fde68a;box-shadow:0 2px 8px rgba(180,83,9,.4)}
+.rb-4{background:rgba(255,255,255,.08);color:var(--text3);border:1px solid rgba(255,255,255,.1)}
+.rb.rank-change{animation:rankChange .4s cubic-bezier(.34,1.56,.64,1)}
 
-/* Rank badges */
-.rb{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;flex-shrink:0}
-.rb-1{background:linear-gradient(135deg,#f59e0b,#fcd34d);color:#78350f;box-shadow:0 2px 8px #f59e0b55}
-.rb-2{background:linear-gradient(135deg,#94a3b8,#cbd5e1);color:#1e293b}
-.rb-3{background:linear-gradient(135deg,#b45309,#d97706);color:#fff}
-.rb-4{background:#f1f5f9;color:#94a3b8}
+/* ══════════════════════════════════════════
+   SCORE DISPLAY
+══════════════════════════════════════════ */
+.sc-pop{animation:scorePop .35s cubic-bezier(.34,1.56,.64,1)}
 
-/* Score animation */
-@keyframes pop{0%{transform:scale(1)}45%{transform:scale(1.1)}100%{transform:scale(1)}}
-.sc-pop{animation:pop .28s cubic-bezier(.34,1.56,.64,1)}
+/* ══════════════════════════════════════════
+   BUTTONS
+══════════════════════════════════════════ */
+.btn-primary{
+  background:linear-gradient(135deg,var(--gold) 0%,var(--gold2) 100%);
+  color:#0f172a;border:none;border-radius:14px;
+  font-weight:900;font-size:14px;cursor:pointer;
+  display:inline-flex;align-items:center;justify-content:center;
+  transition:all .2s cubic-bezier(.22,1,.36,1);
+  height:50px;padding:0 20px;
+  box-shadow:0 4px 20px rgba(245,158,11,.4),0 1px 0 rgba(255,255,255,.3) inset;
+  position:relative;overflow:hidden;
+  letter-spacing:.01em;
+  font-family:'Playfair Display',serif;
+}
+.btn-primary:hover{
+  transform:translateY(-1px);
+  box-shadow:0 8px 28px rgba(245,158,11,.5),0 1px 0 rgba(255,255,255,.3) inset;
+}
+.btn-primary:active{transform:scale(.96) translateY(0)}
+.btn-primary.saved{
+  background:linear-gradient(135deg,var(--green),#34d399)!important;
+  box-shadow:0 4px 20px rgba(16,185,129,.4)!important;
+}
 
-/* Name editable */
-.nm{outline:none;border-radius:4px;padding:0 2px}
-.nm:focus{background:#f0ede6}
+.btn-navy{
+  background:rgba(255,255,255,.07);
+  color:var(--text);border:1px solid rgba(255,255,255,.1);
+  border-radius:12px;font-weight:700;font-size:13px;cursor:pointer;
+  display:inline-flex;align-items:center;justify-content:center;
+  transition:all .2s;height:44px;padding:0 16px;
+  position:relative;overflow:hidden;
+}
+.btn-navy:hover{background:rgba(255,255,255,.11);border-color:rgba(255,255,255,.18)}
+.btn-navy:active{transform:scale(.96)}
 
-/* History */
-.h-row{display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid #f5f0e8}
+.btn-outline{
+  background:rgba(255,255,255,.04);
+  color:var(--text2);
+  border:1px solid rgba(255,255,255,.09);
+  border-radius:10px;font-weight:700;font-size:11px;cursor:pointer;
+  display:inline-flex;align-items:center;justify-content:center;
+  height:34px;padding:0 6px;
+  transition:all .18s;
+  position:relative;overflow:hidden;
+}
+.btn-outline:active{transform:scale(.9)}
+
+.btn-red{
+  background:rgba(239,68,68,.08);
+  color:#f87171;
+  border:1px solid rgba(239,68,68,.2);
+  border-radius:10px;font-weight:700;font-size:11px;cursor:pointer;
+  display:inline-flex;align-items:center;justify-content:center;
+  height:34px;padding:0 6px;
+  transition:all .18s;
+  position:relative;overflow:hidden;
+}
+.btn-red:active{transform:scale(.9)}
+
+/* Add button with player color */
+.btn-add{
+  flex-shrink:0;color:#fff;text-xs font-bold;
+  border-radius:11px;active:scale-90;
+  transition:all .2s cubic-bezier(.22,1,.36,1);
+  height:44px;padding:0 12px;min-width:52px;
+  border:none;cursor:pointer;
+  position:relative;overflow:hidden;
+  font-weight:800;font-size:12px;
+}
+.btn-add:active{transform:scale(.88)}
+
+/* Ripple */
+.ripple{
+  position:absolute;border-radius:50%;
+  background:rgba(255,255,255,.25);
+  transform:scale(0);
+  animation:rippleOut .55s linear;
+  pointer-events:none;
+}
+
+/* ══════════════════════════════════════════
+   NAME EDITABLE
+══════════════════════════════════════════ */
+.nm{outline:none;border-radius:5px;padding:0 3px;transition:background .15s}
+.nm:focus{background:rgba(255,255,255,.08)}
+
+/* ══════════════════════════════════════════
+   HISTORY
+══════════════════════════════════════════ */
+.h-row{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:9px 0;border-bottom:1px solid rgba(255,255,255,.05);
+  animation:fadeSlideUp .3s ease both;
+}
 .h-row:last-child{border-bottom:none}
 
-/* Scrollbar */
-::-webkit-scrollbar{width:3px}::-webkit-scrollbar-thumb{background:#ddd5c0;border-radius:2px}
+/* ══════════════════════════════════════════
+   MODAL
+══════════════════════════════════════════ */
+.modal-bg{
+  position:fixed;inset:0;
+  background:rgba(0,0,0,.75);
+  backdrop-filter:blur(12px);
+  -webkit-backdrop-filter:blur(12px);
+  z-index:50;display:flex;align-items:flex-end;
+  justify-content:center;
+  padding:0;
+  animation:fadeIn .2s ease;
+}
+.modal-sheet{
+  background:var(--surface);
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:24px 24px 0 0;
+  width:100%;max-width:420px;
+  max-height:92dvh;overflow-y:auto;
+  animation:modalIn .35s cubic-bezier(.22,1,.36,1);
+  box-shadow:0 -8px 40px rgba(0,0,0,.6);
+}
+.modal-handle{
+  width:40px;height:4px;background:rgba(255,255,255,.15);
+  border-radius:100px;margin:12px auto 0;
+}
 
-/* Player colors (chart + avatars) */
-.pc0{color:#2563eb}.pc1{color:#16a34a}.pc2{color:#d97706}.pc3{color:#dc2626}
-.bg0{background:#2563eb}.bg1{background:#16a34a}.bg2{background:#d97706}.bg3{background:#dc2626}
+/* ══════════════════════════════════════════
+   STORY MODAL
+══════════════════════════════════════════ */
+.story-modal-bg{
+  position:fixed;inset:0;
+  background:rgba(0,0,0,.85);
+  backdrop-filter:blur(16px);
+  -webkit-backdrop-filter:blur(16px);
+  z-index:50;display:flex;align-items:center;
+  justify-content:center;padding:20px;
+  animation:fadeIn .2s ease;
+}
+#story-card{
+  width:360px;min-height:640px;
+  background:linear-gradient(155deg,#1e293b 0%,#0f172a 60%,#1a2e50 100%);
+  border-radius:24px;padding:32px 24px;color:#fff;
+  display:flex;flex-direction:column;
+  animation:scaleIn .35s cubic-bezier(.22,1,.36,1);
+}
 
-/* Modal overlay */
-.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.55);backdrop-filter:blur(4px);z-index:50;display:flex;align-items:center;justify-content:center;padding:16px}
+/* ══════════════════════════════════════════
+   TOAST
+══════════════════════════════════════════ */
+#toast-container{
+  position:fixed;bottom:24px;left:50%;transform:translateX(-50%);
+  z-index:100;display:flex;flex-direction:column;align-items:center;gap:8px;
+  pointer-events:none;
+}
+.toast{
+  background:rgba(30,41,59,.95);
+  border:1px solid rgba(255,255,255,.12);
+  border-radius:100px;
+  padding:10px 20px;
+  color:#fff;font-size:13px;font-weight:700;
+  backdrop-filter:blur(12px);
+  box-shadow:0 8px 32px rgba(0,0,0,.4);
+  animation:toast-in .3s cubic-bezier(.22,1,.36,1);
+  white-space:nowrap;
+  display:flex;align-items:center;gap:8px;
+}
+.toast.hiding{animation:toast-out .25s ease forwards}
+.toast-success{border-color:rgba(16,185,129,.3);background:rgba(16,185,129,.15)}
+.toast-error{border-color:rgba(239,68,68,.3);background:rgba(239,68,68,.15)}
 
-/* Story card (Instagram formatı 9:16) */
-#story-card{width:360px;min-height:640px;background:linear-gradient(155deg,#1e3a5f 0%,#0f2340 60%,#1a2e50 100%);border-radius:24px;padding:32px 24px;color:#fff;display:flex;flex-direction:column}
+/* ══════════════════════════════════════════
+   FLOAT SCORE
+══════════════════════════════════════════ */
+.float-score{
+  position:fixed;pointer-events:none;
+  font-size:20px;font-weight:900;
+  animation:floatUp .8s ease-out forwards;
+  z-index:200;
+  text-shadow:0 2px 8px rgba(0,0,0,.5);
+}
 
-/* Buton stilleri */
-.btn-navy{background:var(--navy);color:#fff;border:none;border-radius:11px;font-weight:700;font-size:13px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;transition:background .15s,transform .1s;height:42px;padding:0 16px}
-.btn-navy:active{background:var(--navy2);transform:scale(.96)}
-.btn-gold{background:var(--gold);color:var(--navy);border:none;border-radius:11px;font-weight:800;font-size:13px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;transition:all .15s;height:42px;padding:0 16px}
-.btn-gold:active{background:var(--gold2);transform:scale(.96)}
-.btn-outline{background:transparent;color:var(--navy);border:1.5px solid var(--border);border-radius:10px;font-weight:600;font-size:12px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;height:34px;padding:0 6px;transition:all .15s}
-.btn-outline:active{background:#f5f0e8;transform:scale(.95)}
-.btn-red{background:transparent;color:var(--red);border:1.5px solid #f5c6c2;border-radius:10px;font-weight:600;font-size:12px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;height:34px;padding:0 6px;transition:all .15s}
-.btn-red:active{background:#fff5f5;transform:scale(.95)}
+/* ══════════════════════════════════════════
+   OKEY TAŞI
+══════════════════════════════════════════ */
+.okey-tile{
+  position:fixed;pointer-events:none;
+  width:32px;height:42px;
+  border-radius:5px;
+  background:linear-gradient(145deg,#fefce8,#fef3c7);
+  border:2px solid #d97706;
+  box-shadow:0 3px 10px rgba(0,0,0,.4),inset 0 1px 0 rgba(255,255,255,.8);
+  display:flex;align-items:center;justify-content:center;
+  font-size:13px;font-weight:900;
+  z-index:200;
+  transform-origin:center center;
+}
+.okey-tile.falling{
+  animation:tileFloat 1s ease-in-out infinite;
+}
+
+/* Arka plan dekoratif taşlar */
+.bg-tile{
+  position:fixed;pointer-events:none;
+  border-radius:4px;
+  background:linear-gradient(145deg,rgba(255,255,255,.04),rgba(255,255,255,.01));
+  border:1px solid rgba(255,255,255,.05);
+  display:flex;align-items:center;justify-content:center;
+  z-index:0;
+  user-select:none;
+}
+
+/* ══════════════════════════════════════════
+   QR PANEL
+══════════════════════════════════════════ */
+.qr-panel{
+  background:rgba(255,255,255,.04);
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:16px;
+  animation:slideDown .3s cubic-bezier(.22,1,.36,1);
+}
+
+/* ══════════════════════════════════════════
+   SCROLLBAR
+══════════════════════════════════════════ */
+::-webkit-scrollbar{width:3px}
+::-webkit-scrollbar-thumb{background:rgba(255,255,255,.1);border-radius:2px}
+
+/* ══════════════════════════════════════════
+   STAGGER DELAYS
+══════════════════════════════════════════ */
+.delay-1{animation-delay:.05s}
+.delay-2{animation-delay:.1s}
+.delay-3{animation-delay:.15s}
+.delay-4{animation-delay:.2s}
+.delay-5{animation-delay:.25s}
+.delay-6{animation-delay:.3s}
 </style>
 </head>
 <body>
-<div class="max-w-sm mx-auto px-3.5 pt-5 pb-12">
+<!-- ═══ ARKA PLAN OKEY TAŞLARI ═══ -->
+<div id="bg-tiles" aria-hidden="true"></div>
+
+<div class="max-w-sm mx-auto px-3.5 pt-5 pb-14">
 
 <!-- ═══ QR PANEL ═══ -->
-<div id="qr-panel" class="card mb-3" style="display:none">
+<div id="qr-panel" class="qr-panel mb-3" style="display:none">
   <div class="p-5">
     <p class="text-[10px] font-bold tracking-[.2em] text-gray-400 uppercase text-center mb-4">Oyuna Davet Et</p>
     <div class="flex justify-center" id="qr-code"></div>
-    <p class="text-[10px] text-center text-gray-400 mt-3 break-all leading-relaxed" id="qr-url"></p>
+    <p class="text-[10px] text-center text-gray-500 mt-3 break-all leading-relaxed" id="qr-url"></p>
   </div>
 </div>
 
 <!-- ═══ HEADER ═══ -->
-<header class="card card-navy p-4 mb-3">
+<header class="header-card p-4 mb-3 card-animate">
   <div class="flex items-start justify-between mb-3">
     <div>
-      <p class="text-[9px] font-bold tracking-[.25em] uppercase mb-1" style="color:rgba(201,168,76,.7)">SKOR TAKİP</p>
-      <h1 class="font-playfair text-2xl font-bold text-white leading-none">101 &amp; Okey</h1>
+      <p class="text-[9px] font-bold tracking-[.28em] uppercase mb-1.5" style="color:rgba(245,158,11,.6)">SKOR TAKİP</p>
+      <h1 class="header-title font-playfair text-2xl font-bold leading-none">Yancı</h1>
     </div>
     <div class="flex gap-2">
-      <!-- QR -->
       <button onclick="toggleQR()" id="qr-btn" title="Paylaş"
         class="w-10 h-10 rounded-xl flex items-center justify-center transition-all"
-        style="background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15)">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-          <rect x="2.5" y="2.5" width="8" height="8" rx="1.5" stroke="white" stroke-width="1.8"/>
-          <rect x="13.5" y="2.5" width="8" height="8" rx="1.5" stroke="white" stroke-width="1.8"/>
-          <rect x="2.5" y="13.5" width="8" height="8" rx="1.5" stroke="white" stroke-width="1.8"/>
-          <rect x="4.5" y="4.5" width="4" height="4" rx=".5" fill="white"/>
-          <rect x="15.5" y="4.5" width="4" height="4" rx=".5" fill="white"/>
-          <rect x="4.5" y="15.5" width="4" height="4" rx=".5" fill="white"/>
-          <rect x="13.5" y="13.5" width="2.5" height="2.5" rx=".5" fill="white"/>
-          <rect x="18" y="13.5" width="3.5" height="2.5" rx=".5" fill="white"/>
-          <rect x="13.5" y="18" width="3.5" height="3.5" rx=".5" fill="white"/>
-          <rect x="19" y="19" width="2.5" height="2.5" rx=".5" fill="white"/>
+        style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1)">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+          <rect x="2.5" y="2.5" width="8" height="8" rx="1.5" stroke="rgba(255,255,255,.6)" stroke-width="1.8"/>
+          <rect x="13.5" y="2.5" width="8" height="8" rx="1.5" stroke="rgba(255,255,255,.6)" stroke-width="1.8"/>
+          <rect x="2.5" y="13.5" width="8" height="8" rx="1.5" stroke="rgba(255,255,255,.6)" stroke-width="1.8"/>
+          <rect x="4.5" y="4.5" width="4" height="4" rx=".5" fill="rgba(255,255,255,.6)"/>
+          <rect x="15.5" y="4.5" width="4" height="4" rx=".5" fill="rgba(255,255,255,.6)"/>
+          <rect x="4.5" y="15.5" width="4" height="4" rx=".5" fill="rgba(255,255,255,.6)"/>
+          <rect x="13.5" y="13.5" width="2.5" height="2.5" rx=".5" fill="rgba(255,255,255,.6)"/>
+          <rect x="18" y="13.5" width="3.5" height="2.5" rx=".5" fill="rgba(255,255,255,.6)"/>
+          <rect x="13.5" y="18" width="3.5" height="3.5" rx=".5" fill="rgba(255,255,255,.6)"/>
+          <rect x="19" y="19" width="2.5" height="2.5" rx=".5" fill="rgba(255,255,255,.6)"/>
         </svg>
       </button>
-      <!-- Reset -->
       <button onclick="resetGame()" title="Sıfırla"
         class="w-10 h-10 rounded-xl flex items-center justify-center transition-all active:scale-90"
-        style="background:rgba(192,57,43,.2);border:1px solid rgba(192,57,43,.35)">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        style="background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2)">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#f87171" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/>
         </svg>
       </button>
     </div>
   </div>
 
-  <!-- Mode toggle + hint -->
   <div class="flex items-center justify-between">
-    <div style="background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.15);border-radius:100px;padding:3px;display:inline-flex">
-      <button class="t-btn active" id="mode-101" onclick="setMode('101')"
-        style="border-radius:100px;padding:6px 20px;font-size:13px;font-weight:700;cursor:pointer;transition:all .2s;border:none;background:#fff;color:#1e3a5f;box-shadow:0 2px 10px rgba(0,0,0,.2)">101</button>
-      <button class="t-btn" id="mode-okey" onclick="setMode('okey')"
-        style="border-radius:100px;padding:6px 20px;font-size:13px;font-weight:700;cursor:pointer;transition:all .2s;border:none;background:transparent;color:rgba(255,255,255,.5)">Okey</button>
+    <div class="mode-track">
+      <button class="mode-btn active" id="mode-101" onclick="setMode('101')">101</button>
+      <button class="mode-btn" id="mode-okey" onclick="setMode('okey')">Okey</button>
     </div>
-    <span id="mode-hint" class="text-[11px] font-semibold" style="color:rgba(255,255,255,.4)"></span>
+    <span id="mode-hint" class="text-[11px] font-semibold" style="color:rgba(255,255,255,.3)"></span>
   </div>
 </header>
 
-<!-- ═══ DEALER + ÇIFT GIDIYOR BAR ═══ -->
-<div class="card mb-3 px-4 py-3 flex items-center justify-between gap-3">
-  <!-- Dealer -->
-  <div class="flex items-center gap-2 min-w-0">
-    <div class="w-8 h-8 rounded-full flex items-center justify-center text-white font-black text-sm flex-shrink-0" id="dealer-avatar" style="background:#1e3a5f"></div>
+<!-- ═══ DEALER + ÇIFT SWITCH ═══ -->
+<div class="dealer-card mb-3 px-4 py-3 flex items-center justify-between gap-3 card-animate delay-1">
+  <div class="flex items-center gap-2.5 min-w-0">
+    <div class="w-9 h-9 rounded-full flex items-center justify-center text-white font-black text-sm flex-shrink-0 transition-all duration-300"
+      id="dealer-avatar" style="box-shadow:0 4px 12px rgba(0,0,0,.4)"></div>
     <div class="min-w-0">
-      <p class="text-[9px] font-bold tracking-widest uppercase" style="color:#c9a84c">DAĞITICı</p>
-      <p class="text-sm font-bold text-gray-800 truncate" id="dealer-name">Oyuncu 1</p>
+      <p class="text-[9px] font-bold tracking-widest uppercase mb-0.5" style="color:rgba(245,158,11,.65)">DAĞITICI</p>
+      <p class="text-sm font-bold truncate" style="color:var(--text)" id="dealer-name">Oyuncu 1</p>
     </div>
     <span class="dealer-badge">🃏 DAĞITIYOR</span>
   </div>
-  <!-- Çift gidiyor switch -->
   <div class="flex items-center gap-2 flex-shrink-0">
-    <span class="text-[11px] font-bold" style="color:#1e3a5f">Çift</span>
+    <span class="text-[11px] font-bold" style="color:var(--text2)">Çift</span>
     <div class="sw-track" id="double-sw" onclick="toggleDouble()">
       <div class="sw-thumb"></div>
     </div>
   </div>
 </div>
 
-<!-- ═══ PLAYER CARDS 2×2 ═══ -->
+<!-- ═══ PLAYER CARDS ═══ -->
 <div class="grid grid-cols-2 gap-2.5 mb-3" id="players-grid"></div>
 
-<!-- ═══ EL KAYDET BUTONU ═══ -->
+<!-- ═══ EL KAYDET ═══ -->
 <button onclick="saveRound()" id="save-round-btn"
-  class="btn-gold w-full mb-3 text-base font-bold"
-  style="height:50px;border-radius:14px;font-family:'Playfair Display',serif;letter-spacing:.02em;box-shadow:0 4px 16px rgba(201,168,76,.35)">
+  class="btn-primary w-full mb-3 card-animate delay-6"
+  style="font-size:15px;letter-spacing:.02em">
   ✓ Eli Kaydet &amp; Sıradaki El
 </button>
 
 <!-- ═══ HISTORY ═══ -->
-<div class="card mb-3">
+<div class="card mb-3 card-animate delay-5">
   <div class="p-4">
     <div class="flex items-center justify-between mb-3">
-      <h2 class="text-[11px] font-black uppercase tracking-[.15em]" style="color:#1e3a5f">Skor Geçmişi</h2>
-      <span class="text-[10px] font-bold text-gray-400" id="hist-count">0 el</span>
+      <h2 class="text-[11px] font-black uppercase tracking-[.15em]" style="color:var(--gold)">Skor Geçmişi</h2>
+      <span class="text-[10px] font-bold" style="color:var(--text3)" id="hist-count">0 el</span>
     </div>
     <div id="hist-list" class="max-h-56 overflow-y-auto">
-      <p class="text-center text-xs text-gray-300 py-5">Henüz el oynanmadı</p>
+      <p class="text-center text-xs py-5" style="color:var(--text3)">Henüz el oynanmadı</p>
     </div>
   </div>
 </div>
 
-<!-- ═══ ANALİTİK + PAYLAŞ BUTONLARI ═══ -->
-<div class="flex gap-2 mb-3">
+<!-- ═══ ALT BUTONLAR ═══ -->
+<div class="flex gap-2 mb-3 card-animate delay-6">
   <button onclick="showAnalytics()" class="btn-navy flex-1 gap-1.5">
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
     Analitik
   </button>
-  <button onclick="shareStory()" class="btn-gold flex-1 gap-1.5">
+  <button onclick="shareStory()" class="btn-navy flex-1 gap-1.5" style="background:rgba(245,158,11,.12);border-color:rgba(245,158,11,.25);color:#fbbf24">
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
     Paylaş
   </button>
@@ -213,20 +681,23 @@ body{background:#f5f0e8;min-height:100dvh}
 
 </div><!-- end container -->
 
+<!-- ═══ TOAST CONTAINER ═══ -->
+<div id="toast-container"></div>
 
 <!-- ═══ ANALİTİK MODALİ ═══ -->
 <div id="analytics-modal" class="modal-bg" style="display:none" onclick="closeModal('analytics-modal')">
-  <div class="card w-full max-w-sm" style="max-height:90dvh;overflow-y:auto" onclick="event.stopPropagation()">
-    <div class="p-5">
-      <div class="flex items-center justify-between mb-4">
-        <h2 class="font-playfair text-xl font-bold" style="color:#1e3a5f">Oyun Analizi</h2>
-        <button onclick="closeModal('analytics-modal')" class="text-gray-400 hover:text-gray-600 text-2xl leading-none">&times;</button>
+  <div class="modal-sheet" onclick="event.stopPropagation()">
+    <div class="modal-handle"></div>
+    <div class="p-5 pt-4">
+      <div class="flex items-center justify-between mb-5">
+        <h2 class="font-playfair text-xl font-bold" style="color:var(--text)">Oyun Analizi</h2>
+        <button onclick="closeModal('analytics-modal')"
+          class="w-8 h-8 rounded-full flex items-center justify-center transition-all"
+          style="background:rgba(255,255,255,.08);color:var(--text2);font-size:18px">&times;</button>
       </div>
-      <!-- Unvanlar -->
-      <div class="grid grid-cols-2 gap-2 mb-5" id="titles-grid"></div>
-      <!-- Grafik -->
+      <div class="grid grid-cols-2 gap-2.5 mb-5" id="titles-grid"></div>
       <div class="mb-2">
-        <p class="text-[10px] font-bold tracking-widest uppercase mb-3" style="color:#c9a84c">El Bazında Puan Grafiği</p>
+        <p class="text-[10px] font-bold tracking-widest uppercase mb-3" style="color:var(--gold)">El Bazında Puan Grafiği</p>
         <canvas id="score-chart" height="200"></canvas>
       </div>
     </div>
@@ -234,25 +705,26 @@ body{background:#f5f0e8;min-height:100dvh}
 </div>
 
 <!-- ═══ STORY MODALİ ═══ -->
-<div id="story-modal" class="modal-bg" style="display:none" onclick="closeModal('story-modal')">
+<div id="story-modal" class="story-modal-bg" style="display:none" onclick="closeModal('story-modal')">
   <div onclick="event.stopPropagation()" class="flex flex-col items-center gap-4">
-    <div id="story-card">
-      <!-- JS ile doldurulacak -->
-    </div>
-    <button onclick="downloadStory()" class="btn-gold" style="width:360px;height:50px;border-radius:14px;font-size:15px">
+    <div id="story-card"></div>
+    <button onclick="downloadStory()" class="btn-primary" style="width:360px;height:50px;font-size:15px;border-radius:16px">
       ⬇ Görsel Olarak İndir
     </button>
-    <button onclick="closeModal('story-modal')" class="text-white/60 text-sm font-medium">Kapat</button>
+    <button onclick="closeModal('story-modal')" style="color:rgba(255,255,255,.4);font-size:13px;font-weight:600;background:none;border:none;cursor:pointer">Kapat</button>
   </div>
 </div>
 
-
 <script>
-// ═══ SABITLER ══════════════════════════════════════
-const PLAYER_COLORS = ['#2563eb','#16a34a','#d97706','#dc2626'];
-const BG_COLORS     = ['#dbeafe','#dcfce7','#fef3c7','#fee2e2'];
+// ══════════════════════════════════════════
+// CONSTANTS
+// ══════════════════════════════════════════
+const PLAYER_COLORS = ['#3b82f6','#10b981','#f59e0b','#ef4444'];
+const BG_COLORS     = ['rgba(59,130,246,.12)','rgba(16,185,129,.12)','rgba(245,158,11,.12)','rgba(239,68,68,.12)'];
 
-// ═══ STATE ═════════════════════════════════════════
+// ══════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════
 let S = {
   mode: '101',
   players: [
@@ -261,50 +733,182 @@ let S = {
     {name:'Oyuncu 3',score:0},
     {name:'Oyuncu 4',score:0}
   ],
-  rounds: [],        // [{el,p0,p1,p2,p3,cumul:[...]}]
+  rounds: [],
   dealer: 0,
   double: false,
   moveNo: 0,
-  history: []        // ham hamle geçmişi (hızlı ekle için)
+  history: []
 };
 
 let qrVisible=false, qrBuilt=false, chartInst=null;
+let prevRanks = {};
 
-// ═══ PERSIST ════════════════════════════════════════
+// ══════════════════════════════════════════
+// PERSIST
+// ══════════════════════════════════════════
 function load(){
   try{const r=localStorage.getItem('okey101_v3');if(r)S=JSON.parse(r);}catch(_){}
 }
 function save(){localStorage.setItem('okey101_v3',JSON.stringify(S));}
 
-// ═══ RANKS ══════════════════════════════════════════
+// ══════════════════════════════════════════
+// RANKS
+// ══════════════════════════════════════════
 function ranks(){
   const arr=S.players.map((p,i)=>({i,s:p.score}));
   arr.sort((a,b)=>S.mode==='101'?a.s-b.s:b.s-a.s);
   const r={};arr.forEach((p,pos)=>{r[p.i]=pos+1;});return r;
 }
 
-// ═══ DEALER ═════════════════════════════════════════
+// ══════════════════════════════════════════
+// DEALER
+// ══════════════════════════════════════════
 function renderDealer(){
   const p=S.players[S.dealer];
   const av=document.getElementById('dealer-avatar');
   const nm=document.getElementById('dealer-name');
-  if(av){av.textContent=(S.dealer+1).toString();av.style.background=PLAYER_COLORS[S.dealer];}
+  if(av){
+    av.textContent=(S.dealer+1).toString();
+    av.style.background=PLAYER_COLORS[S.dealer];
+    av.style.boxShadow=`0 4px 14px ${PLAYER_COLORS[S.dealer]}55`;
+  }
   if(nm)nm.textContent=p.name;
 }
 
-// ═══ DOUBLE SWITCH ══════════════════════════════════
+// ══════════════════════════════════════════
+// DOUBLE SWITCH
+// ══════════════════════════════════════════
 function toggleDouble(){
   S.double=!S.double;
   const sw=document.getElementById('double-sw');
   if(sw)sw.classList.toggle('on',S.double);
   save();
-  // Gösterge metni güncelle
+  updateSaveBtn();
+  showToast(S.double?'🎯 Çift mod açık — puanlar ×2':'Çift mod kapalı');
+}
+function updateSaveBtn(){
   const btn=document.getElementById('save-round-btn');
   if(btn)btn.textContent=S.double?'✓ Eli Kaydet (×2) & Sıradaki El':'✓ Eli Kaydet & Sıradaki El';
 }
 
-// ═══ ADD SCORE (hızlı butonlar) ═════════════════════
-function addScore(idx,amount){
+// ══════════════════════════════════════════
+// RIPPLE EFFECT
+// ══════════════════════════════════════════
+function addRipple(e, el){
+  const r=el.getBoundingClientRect();
+  const size=Math.max(r.width,r.height)*2;
+  const x=e.clientX-r.left-size/2;
+  const y=e.clientY-r.top-size/2;
+  const rip=document.createElement('span');
+  rip.className='ripple';
+  rip.style.cssText=`width:${size}px;height:${size}px;left:${x}px;top:${y}px`;
+  el.appendChild(rip);
+  setTimeout(()=>rip.remove(),600);
+}
+
+// ══════════════════════════════════════════
+// FLOAT SCORE ANIMATION
+// ══════════════════════════════════════════
+function floatScore(el, amount, color){
+  const rect=el.getBoundingClientRect();
+  const f=document.createElement('div');
+  f.className='float-score';
+  f.textContent=(amount>0?'+':'')+amount;
+  f.style.cssText=`color:${color};left:${rect.left+rect.width/2-20}px;top:${rect.top+window.scrollY-10}px`;
+  document.body.appendChild(f);
+  setTimeout(()=>f.remove(),850);
+}
+
+// ══════════════════════════════════════════
+// OKEY TAŞI ANİMASYONU
+// ══════════════════════════════════════════
+const TILE_SYMBOLS = [
+  {n:'1',c:'#ef4444'},{n:'2',c:'#ef4444'},{n:'3',c:'#ef4444'},
+  {n:'4',c:'#ef4444'},{n:'5',c:'#ef4444'},{n:'6',c:'#ef4444'},
+  {n:'7',c:'#ef4444'},{n:'8',c:'#ef4444'},{n:'9',c:'#ef4444'},
+  {n:'10',c:'#ef4444'},{n:'11',c:'#ef4444'},{n:'12',c:'#ef4444'},{n:'13',c:'#ef4444'},
+  {n:'1',c:'#1e3a5f'},{n:'7',c:'#1e3a5f'},{n:'13',c:'#1e3a5f'},
+  {n:'1',c:'#16a34a'},{n:'7',c:'#16a34a'},{n:'13',c:'#16a34a'},
+  {n:'★',c:'#f59e0b'} // joker
+];
+
+function fireOkeyTiles(){
+  for(let i=0;i<14;i++){
+    setTimeout(()=>{
+      const sym=TILE_SYMBOLS[Math.floor(Math.random()*TILE_SYMBOLS.length)];
+      const t=document.createElement('div');
+      t.className='okey-tile';
+      const startX=15+Math.random()*70;
+      const startY=20+Math.random()*50;
+      const rot=(Math.random()-0.5)*40;
+      t.style.cssText=`
+        left:${startX}%;top:${startY}%;
+        color:${sym.c};
+        transform:rotate(${rot}deg) scale(0);
+        animation:tileBounceIn .5s cubic-bezier(.22,1,.36,1) forwards;
+      `;
+      t.textContent=sym.n;
+      document.body.appendChild(t);
+
+      // Taşı uçur ve kaldır
+      setTimeout(()=>{
+        t.style.transition='transform .6s ease-in, opacity .5s ease-in';
+        t.style.transform=`rotate(${rot+180}deg) scale(.4) translateY(60px)`;
+        t.style.opacity='0';
+        setTimeout(()=>t.remove(),650);
+      },600+Math.random()*300);
+    }, i*55);
+  }
+}
+
+// Arka plan dekoratif taşlar
+function initBgTiles(){
+  const container=document.getElementById('bg-tiles');
+  const positions=[
+    {x:2,y:8,s:28,r:-15,op:.06},{x:88,y:5,s:24,r:12,op:.05},
+    {x:92,y:35,s:32,r:20,op:.07},{x:5,y:55,s:26,r:-8,op:.05},
+    {x:85,y:70,s:30,r:-18,op:.06},{x:8,y:82,s:22,r:10,op:.04},
+    {x:90,y:85,s:28,r:15,op:.05},{x:45,y:3,s:20,r:5,op:.04},
+  ];
+  const syms=['7','★','1','13','♦','4','9','★'];
+  positions.forEach((p,i)=>{
+    const t=document.createElement('div');
+    t.className='bg-tile';
+    const h=Math.round(p.s*1.35);
+    t.style.cssText=`
+      left:${p.x}%;top:${p.y}%;
+      width:${p.s}px;height:${h}px;
+      transform:rotate(${p.r}deg);
+      opacity:${p.op};
+      font-size:${Math.round(p.s*.45)}px;
+      font-weight:900;
+      color:rgba(255,255,255,.5);
+      animation:tileFloat ${3+i*.7}s ease-in-out ${i*.4}s infinite;
+    `;
+    t.textContent=syms[i];
+    container.appendChild(t);
+  });
+}
+
+// ══════════════════════════════════════════
+// TOAST
+// ══════════════════════════════════════════
+function showToast(msg, type=''){
+  const tc=document.getElementById('toast-container');
+  const t=document.createElement('div');
+  t.className='toast'+(type?' toast-'+type:'');
+  t.innerHTML=msg;
+  tc.appendChild(t);
+  setTimeout(()=>{
+    t.classList.add('hiding');
+    setTimeout(()=>t.remove(),300);
+  },2200);
+}
+
+// ══════════════════════════════════════════
+// ADD SCORE
+// ══════════════════════════════════════════
+function addScore(idx, amount, event){
   const real=S.double?amount*2:amount;
   S.players[idx].score+=real;
   S.moveNo++;
@@ -313,30 +917,38 @@ function addScore(idx,amount){
     amount:real,total:S.players[idx].score,
     time:new Date().toLocaleTimeString('tr-TR',{hour:'2-digit',minute:'2-digit'})
   });
-  save();renderAll();
+  save();
+  renderAll();
+
   requestAnimationFrame(()=>{
-    const el=document.getElementById('sc-'+idx);
-    if(!el)return;
-    el.classList.remove('sc-pop');void el.offsetWidth;el.classList.add('sc-pop');
+    const scEl=document.getElementById('sc-'+idx);
+    if(scEl){
+      scEl.classList.remove('sc-pop');void scEl.offsetWidth;scEl.classList.add('sc-pop');
+      floatScore(scEl, real, real<0?'#f87171':PLAYER_COLORS[idx]);
+    }
+    if(event){
+      const btn=event.currentTarget||event.target;
+      if(btn)addRipple(event,btn);
+    }
   });
 }
 
-function addCustom(idx){
+function addCustom(idx, event){
   const inp=document.getElementById('inp-'+idx);
   const val=parseFloat(inp.value);
   if(isNaN(val)||val===0){
     inp.classList.add('err');setTimeout(()=>inp.classList.remove('err'),700);inp.focus();return;
   }
-  addScore(idx,val);inp.value='';
+  addScore(idx,val,event);inp.value='';
 }
 
-// ═══ EL KAYDET ══════════════════════════════════════
+// ══════════════════════════════════════════
+// EL KAYDET
+// ══════════════════════════════════════════
 function saveRound(){
-  // Boş el mi?
   const allZero=S.players.every(p=>p.score===0)&&S.rounds.length===0;
-  if(allZero){alert('Önce puan girin!');return;}
+  if(allZero){showToast('⚠️ Önce puan girin!','error');return;}
 
-  // Mevcut toplam skorları kaydet
   const entry={
     el:S.rounds.length+1,
     scores:S.players.map(p=>p.score),
@@ -344,27 +956,25 @@ function saveRound(){
     double:S.double
   };
   S.rounds.push(entry);
-
-  // Dealer bir ileri
   S.dealer=(S.dealer+1)%4;
 
-  save();
-  renderAll();
-  renderDealer();
+  save();renderAll();renderDealer();
+  fireOkeyTiles();
 
-  // Kısa feedback
   const btn=document.getElementById('save-round-btn');
-  const orig=btn.textContent;
+  btn.classList.add('saved');
   btn.textContent='✓ El Kaydedildi!';
-  btn.style.background='#1a6b47';
-  btn.style.color='#fff';
+  showToast('🎉 El '+entry.el+' kaydedildi!','success');
+
   setTimeout(()=>{
-    btn.textContent=S.double?'✓ Eli Kaydet (×2) & Sıradaki El':'✓ Eli Kaydet & Sıradaki El';
-    btn.style.background='';btn.style.color='';
-  },1200);
+    btn.classList.remove('saved');
+    updateSaveBtn();
+  },1500);
 }
 
-// ═══ NAME EDIT ══════════════════════════════════════
+// ══════════════════════════════════════════
+// NAME EDIT
+// ══════════════════════════════════════════
 function editName(idx){
   const el=document.getElementById('nm-'+idx);
   el.contentEditable='true';el.focus();
@@ -381,90 +991,102 @@ function saveName(idx){
   save();renderHistory();renderDealer();
 }
 
-// ═══ MODE ═══════════════════════════════════════════
+// ══════════════════════════════════════════
+// MODE
+// ══════════════════════════════════════════
 function setMode(m){
   S.mode=m;save();
-  document.getElementById('mode-101').style.cssText=
-    m==='101'?'border-radius:100px;padding:6px 20px;font-size:13px;font-weight:700;cursor:pointer;border:none;background:#fff;color:#1e3a5f;box-shadow:0 2px 10px rgba(0,0,0,.2);transition:all .2s'
-             :'border-radius:100px;padding:6px 20px;font-size:13px;font-weight:700;cursor:pointer;border:none;background:transparent;color:rgba(255,255,255,.5);transition:all .2s';
-  document.getElementById('mode-okey').style.cssText=
-    m==='okey'?'border-radius:100px;padding:6px 20px;font-size:13px;font-weight:700;cursor:pointer;border:none;background:#fff;color:#1e3a5f;box-shadow:0 2px 10px rgba(0,0,0,.2);transition:all .2s'
-              :'border-radius:100px;padding:6px 20px;font-size:13px;font-weight:700;cursor:pointer;border:none;background:transparent;color:rgba(255,255,255,.5);transition:all .2s';
+  document.getElementById('mode-101').classList.toggle('active',m==='101');
+  document.getElementById('mode-okey').classList.toggle('active',m==='okey');
   updateHint();renderPlayers();
 }
 function updateHint(){
   document.getElementById('mode-hint').textContent=
-    S.mode==='101'?'Az puan \u2192 birinci':'\u00c7ok puan \u2192 birinci';
+    S.mode==='101'?'Az puan → birinci':'Çok puan → birinci';
 }
 
-// ═══ RESET ══════════════════════════════════════════
+// ══════════════════════════════════════════
+// RESET
+// ══════════════════════════════════════════
 function resetGame(){
-  if(!confirm('T\u00fcm skorlar\u0131, el ge\u00e7mi\u015fini ve analiti\u011fi s\u0131f\u0131rlamak istiyorsunuz?'))return;
+  if(!confirm('Tüm skorları, el geçmişini ve analitik sıfırlamak istiyorsunuz?'))return;
   S.players.forEach(p=>p.score=0);
-  S.history=[];S.rounds=[];S.moveNo=0;S.dealer=0;
-  save();renderAll();renderDealer();
+  S.history=[];S.rounds=[];S.moveNo=0;S.dealer=0;S.double=false;
+  const sw=document.getElementById('double-sw');
+  if(sw)sw.classList.remove('on');
+  save();renderAll();renderDealer();updateSaveBtn();
+  showToast('🔄 Oyun sıfırlandı');
 }
 
-// ═══ RENDER ALL ═════════════════════════════════════
+// ══════════════════════════════════════════
+// RENDER ALL
+// ══════════════════════════════════════════
 function renderAll(){renderPlayers();renderHistory();}
 
 function renderPlayers(){
   const r=ranks();
-  document.getElementById('players-grid').innerHTML=S.players.map((p,idx)=>{
+  const grid=document.getElementById('players-grid');
+  grid.innerHTML=S.players.map((p,idx)=>{
     const rank=r[idx];
     const c=PLAYER_COLORS[idx];
     const bg=BG_COLORS[idx];
     const isLeader=rank===1;
-    const scoreColor=p.score<0?'#c0392b':p.score===0?'#cbd5e1':c;
+    const scoreColor=p.score<0?'#f87171':p.score===0?'#94a3b8':c;
     const scoreStr=p.score>0?'+'+p.score:String(p.score);
     const isDealer=S.dealer===idx;
-    const glowStyle=isLeader?`box-shadow:0 0 0 2px ${c},0 6px 24px ${c}33;`:'';
+    const prevRank=prevRanks[idx]||rank;
+    const rankChanged=(prevRank!==rank)&&S.moveNo>0;
+    const glowStyle=isLeader?`--leader-color:${c};`:'' ;
 
     return `
-<div class="card p-0 flex flex-col overflow-hidden" style="${glowStyle}">
-  <!-- Top strip -->
-  <div style="height:3px;background:${c};"></div>
+<div class="player-card${isLeader?' leader-glow':''}" style="${glowStyle}animation:fadeSlideUp .4s cubic-bezier(.22,1,.36,1) ${idx*.06}s both">
+  <div style="height:3px;background:linear-gradient(90deg,${c},${c}99);"></div>
   <div class="p-3 flex flex-col gap-2.5">
-    <!-- Rank + name + dealer badge -->
+    <!-- Rank + name row -->
     <div class="flex items-center gap-1.5 min-w-0">
-      <span class="rb rb-${rank}">${rank}</span>
-      <span id="nm-${idx}" class="nm flex-1 text-sm font-bold truncate cursor-pointer" style="color:#1e1b4b;"
+      <span class="rb rb-${rank}${rankChanged?' rank-change':''}">${rank}</span>
+      <span id="nm-${idx}" class="nm flex-1 text-sm font-bold truncate cursor-pointer" style="color:var(--text);"
         onblur="saveName(${idx})" onkeydown="if(event.key==='Enter'){event.preventDefault();saveName(${idx})};"
       >${escH(p.name)}</span>
-      ${isDealer?`<span class="text-[14px]" title="Dağıtıcı">🃏</span>`:''}
-      <button onclick="editName(${idx})" class="flex-shrink-0 opacity-25 hover:opacity-60 transition-opacity p-0.5" style="color:${c}">
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+      ${isDealer?`<span class="text-[13px]" title="Dağıtıcı">🃏</span>`:''}
+      <button onclick="editName(${idx})" class="flex-shrink-0 p-0.5 transition-opacity" style="color:${c};opacity:.3" onmouseover="this.style.opacity='.7'" onmouseout="this.style.opacity='.3'">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
           <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/>
           <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
         </svg>
       </button>
     </div>
+
     <!-- Score -->
-    <div class="text-center py-0.5">
+    <div class="text-center py-1" style="background:${bg};border-radius:12px">
       <div id="sc-${idx}" class="text-[2rem] font-black leading-none" style="color:${scoreColor};letter-spacing:-.03em">${scoreStr}</div>
-      <p class="text-[9px] uppercase tracking-widest font-semibold mt-0.5" style="color:${c}88">${S.mode==='101'?'ceza':'puan'}</p>
+      <p class="text-[9px] uppercase tracking-widest font-bold mt-0.5" style="color:${c}88">${S.mode==='101'?'ceza':'puan'}</p>
     </div>
-    <!-- Input + Ekle -->
+
+    <!-- Input + Add -->
     <div class="flex gap-1.5">
       <input type="number" id="inp-${idx}" class="sc-inp" placeholder="Puan"
-        onfocus="this.style.borderColor='${c}'"
-        onblur="this.style.borderColor=''"
-        onkeydown="if(event.key==='Enter')addCustom(${idx})">
-      <button onclick="addCustom(${idx})"
-        class="flex-shrink-0 text-white text-xs font-bold rounded-[10px] active:scale-90 transition-transform"
-        style="background:${c};height:42px;padding:0 12px;min-width:48px;box-shadow:0 4px 12px ${c}44">
+        onfocus="this.style.borderColor='${c}55';this.style.boxShadow='0 0 0 3px ${c}18'"
+        onblur="this.style.borderColor='';this.style.boxShadow=''"
+        onkeydown="if(event.key==='Enter')addCustom(${idx},event)">
+      <button onclick="addCustom(${idx},event)"
+        class="btn-add"
+        style="background:linear-gradient(135deg,${c},${c}cc);box-shadow:0 4px 14px ${c}44">
         Ekle
       </button>
     </div>
+
     <!-- Quick buttons -->
     <div class="grid grid-cols-3 gap-1">
-      <button onclick="addScore(${idx},101)" class="btn-outline">+101</button>
-      <button onclick="addScore(${idx},202)" class="btn-outline">+202</button>
-      <button onclick="addScore(${idx},-101)" class="btn-red">&minus;101</button>
+      <button onclick="addScore(${idx},101,event)" class="btn-outline" style="color:${c};border-color:${c}30">+101</button>
+      <button onclick="addScore(${idx},202,event)" class="btn-outline" style="color:${c};border-color:${c}30">+202</button>
+      <button onclick="addScore(${idx},-101,event)" class="btn-red">&minus;101</button>
     </div>
   </div>
 </div>`;
   }).join('');
+
+  prevRanks={...r};
 }
 
 function renderHistory(){
@@ -475,48 +1097,44 @@ function renderHistory(){
   cnt.textContent=roundCount+' el · '+histCount+' hamle';
 
   if(!S.history.length&&!S.rounds.length){
-    list.innerHTML='<p class="text-center text-xs text-gray-300 py-5">Hen\u00fcz el oynanmad\u0131</p>';return;
+    list.innerHTML='<p class="text-center text-xs py-5" style="color:var(--text3)">Henüz el oynanmadı</p>';return;
   }
 
-  // El kayıtları + ham hamleler birlikte göster
   let html='';
 
-  // El özetleri
   if(S.rounds.length){
     html+=S.rounds.slice().reverse().map(rd=>{
-      const dbl=rd.double?'<span class="text-[9px] font-bold px-1.5 py-0.5 rounded-full ml-1" style="background:#fef3c7;color:#92400e">×2</span>':'';
+      const dbl=rd.double?`<span style="background:rgba(245,158,11,.15);color:#fbbf24;font-size:9px;font-weight:800;padding:2px 6px;border-radius:100px;margin-left:4px">×2</span>`:'';
       const scores=rd.scores.map((s,i)=>
-        `<span class="font-bold" style="color:${PLAYER_COLORS[i]}">${s>0?'+':''  }${s}</span>`
-      ).join(' / ');
+        `<span style="font-weight:800;color:${PLAYER_COLORS[i]}">${s>0?'+':''}${s}</span>`
+      ).join('<span style="color:rgba(255,255,255,.15);margin:0 2px">/</span>');
       return `
 <div class="h-row flex-col items-start gap-1">
   <div class="flex items-center justify-between w-full">
-    <span class="text-[10px] font-black uppercase tracking-wider" style="color:#c9a84c">El ${rd.el} ${dbl}</span>
-    <span class="text-[9px] text-gray-400">Dağıtıcı: ${escH(S.players[rd.dealer]?.name||'?')}</span>
+    <span style="font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:.1em;color:var(--gold)">El ${rd.el}${dbl}</span>
+    <span style="font-size:9px;color:var(--text3)">🃏 ${escH(S.players[rd.dealer]?.name||'?')}</span>
   </div>
-  <p class="text-xs">${scores}</p>
+  <p style="font-size:12px">${scores}</p>
 </div>`;
     }).join('');
   }
 
-  // Son 5 ham hamle
   if(S.history.length){
-    html+=`<p class="text-[9px] font-bold uppercase tracking-wider mt-2 mb-1" style="color:#c9a84c">Son Hamleler</p>`;
+    html+=`<p style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.12em;color:var(--gold);margin:10px 0 6px">Son Hamleler</p>`;
     html+=S.history.slice(0,8).map(h=>{
       const neg=h.amount<0;
-      const amtStr=(neg?'':'+') +h.amount;
-      const amtColor=neg?'#c0392b':PLAYER_COLORS[h.idx];
+      const amtStr=(neg?'':'+')+h.amount;
+      const amtColor=neg?'#f87171':PLAYER_COLORS[h.idx];
       return `
 <div class="h-row">
   <div class="flex items-center gap-2 min-w-0">
-    <div class="w-6 h-6 rounded-full flex-shrink-0 flex items-center justify-center text-white font-black text-[10px]"
-      style="background:${PLAYER_COLORS[h.idx]}">${h.idx+1}</div>
+    <div style="width:26px;height:26px;border-radius:50%;background:${PLAYER_COLORS[h.idx]};display:flex;align-items:center;justify-content:center;color:#fff;font-weight:900;font-size:10px;flex-shrink:0;box-shadow:0 2px 8px ${PLAYER_COLORS[h.idx]}55">${h.idx+1}</div>
     <div>
-      <p class="text-xs font-bold text-gray-700 truncate">${escH(h.name)}</p>
-      <p class="text-[10px] text-gray-400">${h.time} · Toplam: <b style="color:${PLAYER_COLORS[h.idx]}">${h.total>0?'+':''}${h.total}</b></p>
+      <p style="font-size:12px;font-weight:700;color:var(--text)">${escH(h.name)}</p>
+      <p style="font-size:10px;color:var(--text3)">${h.time} · Toplam: <b style="color:${PLAYER_COLORS[h.idx]}">${h.total>0?'+':''}${h.total}</b></p>
     </div>
   </div>
-  <span class="text-sm font-black ml-2 flex-shrink-0" style="color:${amtColor}">${amtStr}</span>
+  <span style="font-size:15px;font-weight:900;margin-left:8px;flex-shrink:0;color:${amtColor}">${amtStr}</span>
 </div>`;
     }).join('');
   }
@@ -524,30 +1142,23 @@ function renderHistory(){
   list.innerHTML=html;
 }
 
-// ═══ ANALİTİK ═══════════════════════════════════════
+// ══════════════════════════════════════════
+// ANALİTİK
+// ══════════════════════════════════════════
 function showAnalytics(){
-  if(S.rounds.length<1){alert('En az 1 el kaydedilmeli!');return;}
-
-  // Unvanları hesapla
+  if(S.rounds.length<1){showToast('⚠️ En az 1 el kaydedilmeli!','error');return;}
   computeTitles();
-
-  // Grafik
   buildChart();
-
   document.getElementById('analytics-modal').style.display='flex';
 }
 
 function computeTitles(){
   const grid=document.getElementById('titles-grid');
-
-  // En çok ceza yiyen (101 modunda en yüksek skor, okey'de en düşük)
   const scores=S.players.map((p,i)=>({i,s:p.score,name:p.name}));
   const mostPenalty=S.mode==='101'?
     scores.reduce((a,b)=>a.s>b.s?a:b):
     scores.reduce((a,b)=>a.s<b.s?a:b);
 
-  // Geri Dönüş Kralı: en fazla tur kazanıp son durumda iyi olan
-  // (en büyük negatif delta yaşayan, yani en kötüden en iyiye giden)
   let comebackKing=null;
   if(S.rounds.length>=2){
     let maxDelta=-Infinity;
@@ -559,11 +1170,10 @@ function computeTitles(){
     });
   }
 
-  // Lider
   const r=ranks();
-  const leader=S.players[Object.entries(r).find(([,v])=>v===1)[0]];
+  const leader=S.players[parseInt(Object.entries(r).find(([,v])=>v===1)[0])];
+  const leaderIdx=S.players.indexOf(leader);
 
-  // En tutarlı: en düşük standart sapma
   let consistentPlayer=null;
   if(S.rounds.length>=2){
     let minStd=Infinity;
@@ -577,55 +1187,56 @@ function computeTitles(){
 
   const titles=[
     {icon:'🔥',label:'En Çok Ceza',name:mostPenalty.name,sub:mostPenalty.s+' puan',color:PLAYER_COLORS[mostPenalty.i]},
-    {icon:'👑',label:'Şu Anlık Lider',name:leader.name,sub:'1. sıra',color:PLAYER_COLORS[S.players.indexOf(leader)]},
+    {icon:'👑',label:'Şu Anlık Lider',name:leader.name,sub:'1. sıra',color:PLAYER_COLORS[leaderIdx]},
     comebackKing?{icon:'⚡',label:'Geri Dönüş Kralı',name:comebackKing.name,sub:'+'+comebackKing.delta+' fark',color:PLAYER_COLORS[comebackKing.i]}:null,
     consistentPlayer?{icon:'🎯',label:'En Tutarlı',name:consistentPlayer.name,sub:'σ='+consistentPlayer.std,color:PLAYER_COLORS[consistentPlayer.i]}:null,
   ].filter(Boolean);
 
-  grid.innerHTML=titles.map(t=>`
-<div class="rounded-xl p-3 text-center" style="background:${t.color}15;border:1.5px solid ${t.color}33">
-  <div class="text-2xl mb-1">${t.icon}</div>
-  <p class="text-[9px] font-bold uppercase tracking-wider mb-0.5" style="color:${t.color}">${t.label}</p>
-  <p class="text-sm font-black" style="color:#1e3a5f">${escH(t.name)}</p>
-  <p class="text-[10px] text-gray-400 font-medium">${t.sub}</p>
+  grid.innerHTML=titles.map((t,i)=>`
+<div style="background:${t.color}18;border:1.5px solid ${t.color}35;border-radius:16px;padding:12px;text-align:center;animation:scaleIn .35s cubic-bezier(.22,1,.36,1) ${i*.07}s both">
+  <div style="font-size:24px;margin-bottom:6px">${t.icon}</div>
+  <p style="font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;color:${t.color};margin-bottom:3px">${t.label}</p>
+  <p style="font-size:13px;font-weight:900;color:var(--text);margin-bottom:2px">${escH(t.name)}</p>
+  <p style="font-size:10px;color:var(--text3);font-weight:600">${t.sub}</p>
 </div>`).join('');
 }
 
 function buildChart(){
   const canvas=document.getElementById('score-chart');
   if(chartInst){chartInst.destroy();chartInst=null;}
-
   const labels=S.rounds.map(r=>'El '+r.el);
   const datasets=S.players.map((p,i)=>({
     label:p.name,
     data:S.rounds.map(r=>r.scores[i]),
     borderColor:PLAYER_COLORS[i],
-    backgroundColor:PLAYER_COLORS[i]+'22',
+    backgroundColor:PLAYER_COLORS[i]+'18',
     borderWidth:2.5,
     pointRadius:4,
     pointBackgroundColor:PLAYER_COLORS[i],
-    tension:.35,
-    fill:false
+    pointBorderColor:'#1e293b',
+    pointBorderWidth:1.5,
+    tension:.4,fill:false
   }));
-
   chartInst=new Chart(canvas,{
-    type:'line',
-    data:{labels,datasets},
+    type:'line',data:{labels,datasets},
     options:{
       responsive:true,
+      animation:{duration:600,easing:'easeOutQuart'},
       plugins:{
-        legend:{labels:{font:{family:'Inter',size:11},color:'#374151',boxWidth:12,padding:12}},
-        tooltip:{bodyFont:{family:'Inter'},titleFont:{family:'Inter'}}
+        legend:{labels:{font:{family:'Inter',size:11},color:'#94a3b8',boxWidth:12,padding:12}},
+        tooltip:{bodyFont:{family:'Inter'},titleFont:{family:'Inter'},backgroundColor:'#1e293b',borderColor:'rgba(255,255,255,.1)',borderWidth:1}
       },
       scales:{
-        x:{grid:{color:'#f3f4f6'},ticks:{font:{family:'Inter',size:10},color:'#6b7280'}},
-        y:{grid:{color:'#f3f4f6'},ticks:{font:{family:'Inter',size:10},color:'#6b7280'}}
+        x:{grid:{color:'rgba(255,255,255,.04)'},ticks:{font:{family:'Inter',size:10},color:'#64748b'}},
+        y:{grid:{color:'rgba(255,255,255,.04)'},ticks:{font:{family:'Inter',size:10},color:'#64748b'}}
       }
     }
   });
 }
 
-// ═══ STORY / PAYLAŞ ══════════════════════════════════
+// ══════════════════════════════════════════
+// STORY / PAYLAŞ
+// ══════════════════════════════════════════
 function shareStory(){
   buildStoryCard();
   document.getElementById('story-modal').style.display='flex';
@@ -636,16 +1247,14 @@ function buildStoryCard(){
   const leaderIdx=parseInt(Object.entries(r).find(([,v])=>v===1)[0]);
   const leader=S.players[leaderIdx];
   const now=new Date().toLocaleString('tr-TR',{day:'2-digit',month:'long',hour:'2-digit',minute:'2-digit'});
-
   const sorted=[...S.players.map((p,i)=>({...p,i,rank:r[i]}))].sort((a,b)=>a.rank-b.rank);
 
   document.getElementById('story-card').innerHTML=`
 <div style="text-align:center;margin-bottom:24px">
-  <p style="font-size:11px;font-weight:700;letter-spacing:.2em;color:rgba(201,168,76,.7);text-transform:uppercase;margin-bottom:6px">OKEY / 101 SKORU</p>
+  <p style="font-size:11px;font-weight:700;letter-spacing:.2em;color:rgba(245,158,11,.7);text-transform:uppercase;margin-bottom:6px">OKEY / 101 SKORU</p>
   <h2 style="font-family:'Playfair Display',serif;font-size:28px;font-weight:800;color:#fff;line-height:1.1;margin-bottom:4px">${escH(leader.name)}</h2>
   <p style="font-size:13px;color:rgba(255,255,255,.5);font-weight:600">Şu anlık lider 👑</p>
 </div>
-
 <div style="flex:1;display:flex;flex-direction:column;gap:10px;margin-bottom:24px">
 ${sorted.map(p=>`
   <div style="background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.1);border-radius:14px;padding:12px 16px;display:flex;align-items:center;gap:12px">
@@ -657,61 +1266,77 @@ ${sorted.map(p=>`
     <span style="font-size:22px;font-weight:900;letter-spacing:-.03em;color:${p.score<0?'#f87171':PLAYER_COLORS[p.i]}">${p.score>0?'+':''}${p.score}</span>
   </div>`).join('')}
 </div>
-
 <div style="border-top:1px solid rgba(255,255,255,.1);padding-top:16px;display:flex;align-items:center;justify-content:space-between">
   <div>
     <p style="font-size:10px;color:rgba(255,255,255,.35);margin:0 0 2px;text-transform:uppercase;letter-spacing:.1em">${S.rounds.length} el oynandı</p>
     <p style="font-size:11px;color:rgba(255,255,255,.5);margin:0">${now}</p>
   </div>
-  <p style="font-family:'Playfair Display',serif;font-size:18px;font-weight:700;color:rgba(201,168,76,.8);margin:0">101 &amp; Okey</p>
+  <p style="font-family:'Playfair Display',serif;font-size:18px;font-weight:700;color:rgba(245,158,11,.8);margin:0">101 &amp; Okey</p>
 </div>`;
 }
 
 function downloadStory(){
   const card=document.getElementById('story-card');
-  html2canvas(card,{
-    scale:2,backgroundColor:null,
-    logging:false,useCORS:true
-  }).then(canvas=>{
-    const a=document.createElement('a');
-    a.href=canvas.toDataURL('image/png');
-    a.download='okey-skor-'+Date.now()+'.png';
-    a.click();
-  }).catch(()=>alert('İndirme başarısız. GitHub Pages üzerinden tekrar deneyin.'));
+  html2canvas(card,{scale:2,backgroundColor:null,logging:false,useCORS:true})
+    .then(canvas=>{
+      const a=document.createElement('a');
+      a.href=canvas.toDataURL('image/png');
+      a.download='okey-skor-'+Date.now()+'.png';
+      a.click();
+      showToast('📥 Görsel indirildi!','success');
+    })
+    .catch(()=>showToast('İndirme başarısız','error'));
 }
 
-// ═══ MODAL ══════════════════════════════════════════
-function closeModal(id){document.getElementById(id).style.display='none';}
+// ══════════════════════════════════════════
+// MODAL
+// ══════════════════════════════════════════
+function closeModal(id){
+  const el=document.getElementById(id);
+  el.style.opacity='0';
+  el.style.transition='opacity .2s';
+  setTimeout(()=>{el.style.display='none';el.style.opacity='';el.style.transition='';},200);
+}
 
-// ═══ QR ═════════════════════════════════════════════
+// ══════════════════════════════════════════
+// QR
+// ══════════════════════════════════════════
 function toggleQR(){
   qrVisible=!qrVisible;
-  document.getElementById('qr-panel').style.display=qrVisible?'block':'none';
-  document.getElementById('qr-btn').style.background=
-    qrVisible?'rgba(255,255,255,.2)':'rgba(255,255,255,.08)';
+  const panel=document.getElementById('qr-panel');
+  const btn=document.getElementById('qr-btn');
+  panel.style.display=qrVisible?'block':'none';
+  btn.style.background=qrVisible?'rgba(255,255,255,.15)':'rgba(255,255,255,.06)';
+  btn.style.borderColor=qrVisible?'rgba(255,255,255,.3)':'rgba(255,255,255,.1)';
   if(qrVisible&&!qrBuilt)buildQR();
 }
 function buildQR(){
   const url=window.location.href;
   document.getElementById('qr-url').textContent=url;
   const c=document.getElementById('qr-code');c.innerHTML='';
-  new QRCode(c,{text:url,width:164,height:164,colorDark:'#1e3a5f',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.M});
+  new QRCode(c,{text:url,width:164,height:164,colorDark:'#f8fafc',colorLight:'#1e293b',correctLevel:QRCode.CorrectLevel.M});
   qrBuilt=true;
 }
 
-// ═══ UTILS ══════════════════════════════════════════
+// ══════════════════════════════════════════
+// UTILS
+// ══════════════════════════════════════════
 function escH(s){
   return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
-// ═══ INIT ════════════════════════════════════════════
+// ══════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════
 load();
 setMode(S.mode);
 updateHint();
+updateSaveBtn();
 const sw=document.getElementById('double-sw');
 if(sw)sw.classList.toggle('on',S.double);
 renderAll();
 renderDealer();
+initBgTiles();
 </script>
 </body>
 </html>
